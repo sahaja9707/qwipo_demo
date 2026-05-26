@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Delivery Route — Logistics Buyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sidebar-bg:#0f2557;
+  --sidebar-active:rgba(255,255,255,0.15);
+  --sidebar-hover:rgba(255,255,255,0.07);
+  --sidebar-text:rgba(255,255,255,0.65);
+  --accent:#2563eb;
+  --accent-light:#eff6ff;
+  --accent-mid:#bfdbfe;
+  --accent-text:#1e40af;
+  --bg-page:#f0f3f8;
+  --bg-card:#ffffff;
+  --bg-thead:#f4f6fb;
+  --border:#e2e8f0;
+  --border-strong:#cbd5e1;
+  --text-1:#0f172a;
+  --text-2:#64748b;
+  --text-3:#94a3b8;
+  --chip-sel-bg:#dbeafe;
+  --chip-sel-border:#93c5fd;
+  --chip-sel-color:#1e40af;
+  --row-hover:#f5f8ff;
+  --font:'DM Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg-page);color:var(--text-1);font-size:14px}
+.layout{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:212px;flex-shrink:0;background:var(--sidebar-bg);display:flex;flex-direction:column;overflow-y:auto}
+.s-logo{display:flex;align-items:center;gap:10px;padding:18px 16px;color:#fff;font-size:14px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1)}
+.s-logo i{font-size:22px;color:#60a5fa}
+.s-logo .chev{margin-left:auto;width:22px;height:22px;border-radius:5px;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.s-logo .chev i{font-size:13px}
+.nav{padding:10px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:var(--sidebar-text);font-size:13px;font-weight:500;cursor:pointer;transition:background .12s,color .12s;position:relative}
+.nav-item:hover{background:var(--sidebar-hover);color:#fff}
+.nav-item.active{background:var(--sidebar-active);color:#fff}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:#60a5fa;border-radius:0 3px 3px 0}
+.nav-item i{font-size:19px}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:10px 22px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.hamburger{font-size:20px;color:var(--text-2);cursor:pointer}
+.tab-group{display:flex;background:var(--bg-page);border-radius:20px;padding:3px;border:1px solid var(--border)}
+.tab{padding:6px 18px;border-radius:16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-2);transition:all .15s;white-space:nowrap}
+.tab.active{background:var(--bg-card);color:var(--text-1);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.topbar-user{margin-left:auto;font-size:20px;color:var(--text-2);cursor:pointer}
+.content{flex:1;overflow-y:auto;padding:20px 22px}
+
+/* Page header */
+.page-header{display:flex;align-items:center;gap:10px;background:var(--bg-card);padding:14px 18px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px}
+.back-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);background:var(--bg-page);transition:background .12s}
+.back-btn:hover{background:var(--border)}
+.back-btn i{font-size:15px}
+.page-icon{font-size:20px;color:var(--accent)}
+.page-title{font-size:17px;font-weight:600;letter-spacing:-.3px}
+
+/* Card */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.date-input{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-strong);border-radius:7px;padding:8px 14px;font-size:13px;font-family:var(--font);font-weight:500;color:var(--text-1);cursor:pointer;background:var(--bg-card);transition:border-color .12s;margin-bottom:18px}
+.date-input:hover{border-color:var(--accent)}
+.date-input i{color:var(--accent);font-size:16px}
+
+/* Chips */
+.chips-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid var(--border);cursor:pointer;color:var(--text-2);background:var(--bg-page);transition:all .12s;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.selected{background:var(--chip-sel-bg);border-color:var(--chip-sel-border);color:var(--chip-sel-color)}
+.chip input{display:none}
+.active-pills{display:flex;flex-wrap:wrap;gap:6px;min-height:0}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;background:var(--chip-sel-bg);color:var(--chip-sel-color);font-size:12px;font-weight:500;border:1px solid var(--chip-sel-border)}
+.pill .rm{cursor:pointer;font-size:12px;opacity:.7;display:flex;align-items:center;transition:opacity .1s}
+.pill .rm:hover{opacity:1}
+
+/* Section header */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sec-title{font-size:14px;font-weight:600}
+.sel-all-lbl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer}
+.sel-all-lbl input{cursor:pointer;accent-color:var(--accent)}
+
+/* Sort hint banner */
+.sort-hint{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);background:var(--bg-page);border:1px solid var(--border);border-radius:6px;padding:7px 12px;margin-bottom:10px}
+.sort-hint i{font-size:14px;flex-shrink:0}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px}
+
+/* ── THEAD ── */
+thead tr{background:var(--bg-thead)}
+thead th{
+  padding:10px 11px;
+  text-align:left;
+  font-size:11px;
+  font-weight:600;
+  color:var(--text-2);
+  white-space:nowrap;
+  border-bottom:1px solid var(--border);
+  border-right:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:var(--bg-thead);
+  /* default: not sortable */
+}
+thead th:last-child{border-right:none}
+/* Checkbox column — not sortable */
+thead th.col-cb{width:36px;cursor:default}
+/* All sortable columns */
+thead th.sortable{
+  cursor:pointer;
+  user-select:none;
+  transition:background .12s,color .12s;
+}
+thead th.sortable:hover{background:#edf2ff;color:var(--accent)}
+thead th.sort-asc,
+thead th.sort-desc{
+  background:var(--accent-light);
+  color:var(--accent);
+  border-bottom:2px solid var(--accent-mid);
+}
+
+/* th inner layout */
+.th-inner{display:inline-flex;align-items:center;gap:5px;width:100%}
+.th-icon{font-size:12px;opacity:.65;flex-shrink:0}
+.th-label{flex:1}
+
+/* Sort arrow widget */
+.sort-arrows{display:inline-flex;flex-direction:column;align-items:center;gap:0;margin-left:auto;padding-left:4px;flex-shrink:0;line-height:1}
+.arr{font-size:8px;color:var(--text-3);line-height:1.1;display:block;transition:color .12s,transform .12s}
+thead th.sort-asc  .arr.up  {color:var(--accent);transform:scale(1.2)}
+thead th.sort-asc  .arr.dn  {opacity:.2}
+thead th.sort-desc .arr.dn  {color:var(--accent);transform:scale(1.2)}
+thead th.sort-desc .arr.up  {opacity:.2}
+
+/* Tooltip on hover for sortable cols */
+thead th.sortable{position:relative}
+thead th.sortable::after{
+  content:attr(data-tip);
+  position:absolute;
+  bottom:calc(100% + 6px);
+  left:50%;
+  transform:translateX(-50%);
+  background:#1e293b;
+  color:#f8fafc;
+  font-size:10.5px;
+  font-weight:400;
+  white-space:nowrap;
+  padding:4px 8px;
+  border-radius:5px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s;
+  z-index:10;
+}
+thead th.sortable:hover::after{opacity:1}
+
+/* TBODY */
+tbody tr{border-bottom:1px solid var(--border);transition:background .08s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--row-hover)}
+tbody td{padding:10px 11px;vertical-align:middle;border-right:1px solid #f1f5f9}
+tbody td:last-child{border-right:none}
+tbody td input[type="checkbox"]{cursor:pointer;accent-color:var(--accent)}
+.td-date{white-space:nowrap}
+.td-retailer{font-weight:500}
+.td-sales{color:var(--text-2);font-size:12px}
+.td-beat{color:var(--text-2);font-size:11.5px;line-height:1.4}
+.td-ref{font-family:var(--mono);font-size:11.5px;color:var(--accent-text)}
+.td-invoice{font-family:var(--mono);font-size:12px;font-weight:600}
+.td-weight{font-family:var(--mono);font-size:12px}
+
+/* Empty state */
+.empty-row td{text-align:center;padding:36px;color:var(--text-3);font-size:13px}
+.empty-icon{font-size:34px;display:block;margin-bottom:8px;opacity:.35}
+
+/* Footer meta */
+.rec-meta{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--text-3)}
+.rec-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--bg-page);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-weight:600;color:var(--text-2);font-size:11px;font-family:var(--mono)}
+.sort-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--accent-text);background:var(--accent-light);border:1px solid var(--accent-mid);border-radius:4px;padding:2px 8px;margin-left:4px;display:none}
+.sort-status.visible{display:inline-flex}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="s-logo">
+      <i class="ti ti-truck" aria-hidden="true"></i>
+      Logistics Buyer
+      <div class="chev"><i class="ti ti-chevron-left" aria-hidden="true"></i></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item"><i class="ti ti-package" aria-hidden="true"></i>Orders</div>
+      <div class="nav-item active"><i class="ti ti-truck-delivery" aria-hidden="true"></i>Delivery Planning</div>
+      <div class="nav-item"><i class="ti ti-map-route" aria-hidden="true"></i>Trips</div>
+      <div class="nav-item"><i class="ti ti-chart-bar" aria-hidden="true"></i>Reports</div>
+      <div class="nav-item"><i class="ti ti-users" aria-hidden="true"></i>Customers</div>
+      <div class="nav-item"><i class="ti ti-settings" aria-hidden="true"></i>Settings</div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="topbar">
+      <i class="ti ti-menu-2 hamburger" aria-hidden="true"></i>
+      <div class="tab-group">
+        <div class="tab active">3PL Logistics</div>
+        <div class="tab">Self Logistics</div>
+      </div>
+      <i class="ti ti-user-circle topbar-user" aria-hidden="true"></i>
+    </div>
+
+    <div class="content">
+
+      <!-- Page title -->
+      <div class="page-header">
+        <div class="back-btn" onclick="history.back()"><i class="ti ti-arrow-left" aria-hidden="true"></i></div>
+        <i class="ti ti-git-branch page-icon" aria-hidden="true"></i>
+        <h1 class="page-title">Create Delivery Route</h1>
+      </div>
+
+      <!-- Filters -->
+      <div class="card">
+        <div class="field-label">Delivery Date</div>
+        <div class="date-input">
+          <i class="ti ti-calendar" aria-hidden="true"></i>May 27th, 2026
+        </div>
+        <div class="field-label">Order Dates</div>
+        <div class="chips-row" id="chips-container"></div>
+        <div class="active-pills" id="active-pills"></div>
+      </div>
+
+      <!-- Orders table -->
+      <div class="card">
+        <div class="sec-hdr">
+          <span class="sec-title">Available Orders</span>
+          <label class="sel-all-lbl">
+            <input type="checkbox" id="sel-all"> Select All
+          </label>
+        </div>
+
+        <div class="sort-hint">
+          <i class="ti ti-arrows-sort" aria-hidden="true"></i>
+          All columns are sortable — click a header once to sort ascending&nbsp;▲, again for descending&nbsp;▼, a third time to reset. Sorting applies to currently filtered records only.
+        </div>
+
+        <div class="tbl-wrap">
+          <table id="orders-table">
+            <thead>
+              <tr id="thead-row">
+                <!-- built by JS -->
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="rec-meta">
+          <span class="rec-badge" id="rec-count">0</span>
+          orders shown
+          <span class="sort-status" id="sort-status">
+            <i class="ti ti-arrows-sort" style="font-size:12px" aria-hidden="true"></i>
+            <span id="sort-label"></span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   COLUMN DEFINITIONS — single source of truth
+   Every entry here gets a sortable header.
+   key        : field name in order objects
+   label      : header text
+   icon       : Tabler icon class
+   type       : 'str' | 'num'  — drives sort comparator
+   cls        : td CSS class
+   fmt(o)     : formats the cell display value
+═══════════════════════════════════════════ */
+const COLUMNS = [
+  {
+    key:'date', label:'Order Date', icon:'ti-calendar', type:'num',
+    cls:'td-date',
+    sortKey: o => o.dateVal,
+    fmt: o => o.date
+  },
+  {
+    key:'retailer', label:'Retailer Name', icon:'ti-building-store', type:'str',
+    cls:'td-retailer',
+    sortKey: o => o.retailer,
+    fmt: o => o.retailer
+  },
+  {
+    key:'sales', label:'Sales Person', icon:'ti-user', type:'str',
+    cls:'td-sales',
+    sortKey: o => o.sales,
+    fmt: o => o.sales
+  },
+  {
+    key:'beat', label:'Beat Name', icon:'ti-route', type:'str',
+    cls:'td-beat',
+    sortKey: o => o.beat,
+    fmt: o => o.beat
+  },
+  {
+    key:'ref', label:'Ref Order Number', icon:'ti-hash', type:'str',
+    cls:'td-ref',
+    sortKey: o => o.ref,
+    fmt: o => o.ref
+  },
+  {
+    key:'invoice', label:'Invoice Value', icon:'ti-currency-rupee', type:'num',
+    cls:'td-invoice',
+    sortKey: o => o.invoiceVal,
+    fmt: o => o.invoice
+  },
+  {
+    key:'weight', label:'Total Weight (KG)', icon:'ti-weight', type:'num',
+    cls:'td-weight',
+    sortKey: o => o.weight,
+    fmt: o => o.weight.toFixed(2) + ' Kgs'
+  },
+  {
+    key:'vol', label:'Total Vol. Weight (KG)', icon:'ti-box', type:'num',
+    cls:'td-weight',
+    sortKey: o => o.vol,
+    fmt: o => o.vol.toFixed(2) + ' Kgs'
+  },
+];
+
+/* ═══════════════ DATA ═══════════════ */
+const ORDER_DATES = [
+  '20-3-2026','21-3-2026','13-4-2026','14-4-2026','16-4-2026',
+  '17-4-2026','18-4-2026','21-4-2026','22-4-2026','28-4-2026',
+  '7-5-2026','12-5-2026','4-11-2026'
+];
+
+const ALL_ORDERS = [
+  /* ── 20-3-2026 ── */
+  {date:'20-03-2026',dateVal:20260320,retailer:'Alpha Traders',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000101',invoiceVal:12300.00,invoice:'₹ 12,300.00',weight:220,vol:220,filterDate:'20-3-2026'},
+  {date:'20-03-2026',dateVal:20260320,retailer:'Beta Wholesale',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000105',invoiceVal:4750.50,invoice:'₹ 4,750.50',weight:95,vol:95,filterDate:'20-3-2026'},
+  {date:'20-03-2026',dateVal:20260320,retailer:'Kiran General Store',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000110',invoiceVal:3180.00,invoice:'₹ 3,180.00',weight:65,vol:65,filterDate:'20-3-2026'},
+  {date:'20-03-2026',dateVal:20260320,retailer:'Raj Provision Mart',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000115',invoiceVal:7420.75,invoice:'₹ 7,420.75',weight:140,vol:140,filterDate:'20-3-2026'},
+  {date:'20-03-2026',dateVal:20260320,retailer:'Sunrise Grocery',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000120',invoiceVal:9650.00,invoice:'₹ 9,650.00',weight:180,vol:180,filterDate:'20-3-2026'},
+  /* ── 21-3-2026 ── */
+  {date:'21-03-2026',dateVal:20260321,retailer:'Delta Distributors',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000200',invoiceVal:15600.00,invoice:'₹ 15,600.00',weight:310,vol:310,filterDate:'21-3-2026'},
+  {date:'21-03-2026',dateVal:20260321,retailer:'Sri Venkatesh Stores',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000205',invoiceVal:6820.00,invoice:'₹ 6,820.00',weight:128,vol:128,filterDate:'21-3-2026'},
+  {date:'21-03-2026',dateVal:20260321,retailer:'National Mart',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000210',invoiceVal:11340.50,invoice:'₹ 11,340.50',weight:210,vol:210,filterDate:'21-3-2026'},
+  {date:'21-03-2026',dateVal:20260321,retailer:'Ganesh Superstore',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000215',invoiceVal:4290.00,invoice:'₹ 4,290.00',weight:82,vol:82,filterDate:'21-3-2026'},
+  /* ── 13-4-2026 ── */
+  {date:'13-04-2026',dateVal:20260413,retailer:'Sunrise Mart',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000455',invoiceVal:9100.00,invoice:'₹ 9,100.00',weight:175,vol:175,filterDate:'13-4-2026'},
+  {date:'13-04-2026',dateVal:20260413,retailer:'Laxmi Provision',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000460',invoiceVal:5630.00,invoice:'₹ 5,630.00',weight:108,vol:108,filterDate:'13-4-2026'},
+  {date:'13-04-2026',dateVal:20260413,retailer:'Hanuman Traders',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000465',invoiceVal:8175.25,invoice:'₹ 8,175.25',weight:155,vol:155,filterDate:'13-4-2026'},
+  {date:'13-04-2026',dateVal:20260413,retailer:'Balaji Wholesale',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000470',invoiceVal:13400.00,invoice:'₹ 13,400.00',weight:265,vol:265,filterDate:'13-4-2026'},
+  {date:'13-04-2026',dateVal:20260413,retailer:'Deepak General',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000475',invoiceVal:2980.50,invoice:'₹ 2,980.50',weight:57,vol:57,filterDate:'13-4-2026'},
+  /* ── 14-4-2026 ── */
+  {date:'14-04-2026',dateVal:20260414,retailer:'City Superstore',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000521',invoiceVal:3200.75,invoice:'₹ 3,200.75',weight:60,vol:60,filterDate:'14-4-2026'},
+  {date:'14-04-2026',dateVal:20260414,retailer:'Patel Brothers',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000525',invoiceVal:10800.00,invoice:'₹ 10,800.00',weight:200,vol:200,filterDate:'14-4-2026'},
+  {date:'14-04-2026',dateVal:20260414,retailer:'Krishna Grocers',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000529',invoiceVal:7345.00,invoice:'₹ 7,345.00',weight:138,vol:138,filterDate:'14-4-2026'},
+  {date:'14-04-2026',dateVal:20260414,retailer:'Fortune Supermart',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000533',invoiceVal:16200.00,invoice:'₹ 16,200.00',weight:305,vol:305,filterDate:'14-4-2026'},
+  /* ── 16-4-2026 ── */
+  {date:'16-04-2026',dateVal:20260416,retailer:'Prime Retail Hub',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000600',invoiceVal:7850.00,invoice:'₹ 7,850.00',weight:130,vol:130,filterDate:'16-4-2026'},
+  {date:'16-04-2026',dateVal:20260416,retailer:'Quick Pick Stores',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000605',invoiceVal:4125.00,invoice:'₹ 4,125.00',weight:79,vol:79,filterDate:'16-4-2026'},
+  {date:'16-04-2026',dateVal:20260416,retailer:'Amul Dairy Outlet',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000610',invoiceVal:2860.50,invoice:'₹ 2,860.50',weight:55,vol:55,filterDate:'16-4-2026'},
+  {date:'16-04-2026',dateVal:20260416,retailer:'Supreme Traders',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000615',invoiceVal:9400.00,invoice:'₹ 9,400.00',weight:176,vol:176,filterDate:'16-4-2026'},
+  {date:'16-04-2026',dateVal:20260416,retailer:'Bharat Kirana',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000620',invoiceVal:5500.00,invoice:'₹ 5,500.00',weight:104,vol:104,filterDate:'16-4-2026'},
+  /* ── 17-4-2026 ── */
+  {date:'17-04-2026',dateVal:20260417,retailer:'Greenfield Stores',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000640',invoiceVal:5200.00,invoice:'₹ 5,200.00',weight:110,vol:110,filterDate:'17-4-2026'},
+  {date:'17-04-2026',dateVal:20260417,retailer:'Vishal Mega Mart',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000644',invoiceVal:19800.00,invoice:'₹ 19,800.00',weight:375,vol:375,filterDate:'17-4-2026'},
+  {date:'17-04-2026',dateVal:20260417,retailer:'Saravana Stores',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000648',invoiceVal:8760.00,invoice:'₹ 8,760.00',weight:165,vol:165,filterDate:'17-4-2026'},
+  {date:'17-04-2026',dateVal:20260417,retailer:'Deccan Groceries',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000652',invoiceVal:3640.25,invoice:'₹ 3,640.25',weight:70,vol:70,filterDate:'17-4-2026'},
+  /* ── 18-4-2026 ── */
+  {date:'18-04-2026',dateVal:20260418,retailer:'Regal Stores',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000670',invoiceVal:11200.00,invoice:'₹ 11,200.00',weight:195,vol:195,filterDate:'18-4-2026'},
+  {date:'18-04-2026',dateVal:20260418,retailer:'Sahara Bazaar',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000674',invoiceVal:6380.00,invoice:'₹ 6,380.00',weight:122,vol:122,filterDate:'18-4-2026'},
+  {date:'18-04-2026',dateVal:20260418,retailer:'Viveks Supermart',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000678',invoiceVal:14500.00,invoice:'₹ 14,500.00',weight:272,vol:272,filterDate:'18-4-2026'},
+  {date:'18-04-2026',dateVal:20260418,retailer:'Galaxy Provisions',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000682',invoiceVal:4890.75,invoice:'₹ 4,890.75',weight:93,vol:93,filterDate:'18-4-2026'},
+  {date:'18-04-2026',dateVal:20260418,retailer:'Lotus Grocers',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000686',invoiceVal:7220.00,invoice:'₹ 7,220.00',weight:136,vol:136,filterDate:'18-4-2026'},
+  /* ── 21-4-2026 ── */
+  {date:'21-04-2026',dateVal:20260421,retailer:'Metro Cash & Carry',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000710',invoiceVal:22400.00,invoice:'₹ 22,400.00',weight:420,vol:420,filterDate:'21-4-2026'},
+  {date:'21-04-2026',dateVal:20260421,retailer:'Spencers Retail',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000714',invoiceVal:17650.00,invoice:'₹ 17,650.00',weight:332,vol:332,filterDate:'21-4-2026'},
+  {date:'21-04-2026',dateVal:20260421,retailer:'Nilgiris Stores',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000718',invoiceVal:9300.00,invoice:'₹ 9,300.00',weight:174,vol:174,filterDate:'21-4-2026'},
+  {date:'21-04-2026',dateVal:20260421,retailer:'Food World',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000722',invoiceVal:5960.50,invoice:'₹ 5,960.50',weight:113,vol:113,filterDate:'21-4-2026'},
+  /* ── 22-4-2026 ── */
+  {date:'22-04-2026',dateVal:20260422,retailer:'Vijaya Supermart',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000740',invoiceVal:5880.00,invoice:'₹ 5,880.00',weight:105,vol:105,filterDate:'22-4-2026'},
+  {date:'22-04-2026',dateVal:20260422,retailer:'Royal Kirana',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000744',invoiceVal:3120.00,invoice:'₹ 3,120.00',weight:60,vol:60,filterDate:'22-4-2026'},
+  {date:'22-04-2026',dateVal:20260422,retailer:'Anand Wholesale',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000748',invoiceVal:12850.00,invoice:'₹ 12,850.00',weight:242,vol:242,filterDate:'22-4-2026'},
+  {date:'22-04-2026',dateVal:20260422,retailer:'Empire Provisions',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000752',invoiceVal:8340.00,invoice:'₹ 8,340.00',weight:158,vol:158,filterDate:'22-4-2026'},
+  {date:'22-04-2026',dateVal:20260422,retailer:'Shree Traders',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000756',invoiceVal:6710.25,invoice:'₹ 6,710.25',weight:127,vol:127,filterDate:'22-4-2026'},
+  /* ── 28-4-2026 ── */
+  {date:'28-04-2026',dateVal:20260428,retailer:'Star Bazaar',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000810',invoiceVal:8650.00,invoice:'₹ 8,650.00',weight:160,vol:160,filterDate:'28-4-2026'},
+  {date:'28-04-2026',dateVal:20260428,retailer:'Heritage Foods',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000814',invoiceVal:21300.00,invoice:'₹ 21,300.00',weight:400,vol:400,filterDate:'28-4-2026'},
+  {date:'28-04-2026',dateVal:20260428,retailer:'Landmark Stores',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000818',invoiceVal:7140.50,invoice:'₹ 7,140.50',weight:135,vol:135,filterDate:'28-4-2026'},
+  {date:'28-04-2026',dateVal:20260428,retailer:'Premier Mart',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000822',invoiceVal:4560.00,invoice:'₹ 4,560.00',weight:87,vol:87,filterDate:'28-4-2026'},
+  {date:'28-04-2026',dateVal:20260428,retailer:'Dmart Hypermart',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000826',invoiceVal:34800.00,invoice:'₹ 34,800.00',weight:650,vol:650,filterDate:'28-4-2026'},
+  /* ── 7-5-2026 ── */
+  {date:'07-05-2026',dateVal:20260507,retailer:'Omega Mart',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000900',invoiceVal:4400.00,invoice:'₹ 4,400.00',weight:85,vol:85,filterDate:'7-5-2026'},
+  {date:'07-05-2026',dateVal:20260507,retailer:'Kaveri Superstore',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000904',invoiceVal:11750.00,invoice:'₹ 11,750.00',weight:218,vol:218,filterDate:'7-5-2026'},
+  {date:'07-05-2026',dateVal:20260507,retailer:'Himalaya Provisions',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000908',invoiceVal:6920.50,invoice:'₹ 6,920.50',weight:130,vol:130,filterDate:'7-5-2026'},
+  {date:'07-05-2026',dateVal:20260507,retailer:'Vinayak Traders',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000912',invoiceVal:3850.00,invoice:'₹ 3,850.00',weight:74,vol:74,filterDate:'7-5-2026'},
+  {date:'07-05-2026',dateVal:20260507,retailer:'Sarvam Supermart',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000916',invoiceVal:8200.00,invoice:'₹ 8,200.00',weight:155,vol:155,filterDate:'7-5-2026'},
+  /* ── 12-5-2026 ── */
+  {date:'12-05-2026',dateVal:20260512,retailer:'Reliance Smart',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000870',invoiceVal:18750.00,invoice:'₹ 18,750.00',weight:340,vol:340,filterDate:'12-5-2026'},
+  {date:'12-05-2026',dateVal:20260512,retailer:'Big Bazaar Plus',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000874',invoiceVal:27600.00,invoice:'₹ 27,600.00',weight:520,vol:520,filterDate:'12-5-2026'},
+  {date:'12-05-2026',dateVal:20260512,retailer:'Easyday Market',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000878',invoiceVal:9450.00,invoice:'₹ 9,450.00',weight:178,vol:178,filterDate:'12-5-2026'},
+  {date:'12-05-2026',dateVal:20260512,retailer:'More Supermarket',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000882',invoiceVal:14230.75,invoice:'₹ 14,230.75',weight:268,vol:268,filterDate:'12-5-2026'},
+  {date:'12-05-2026',dateVal:20260512,retailer:'Spar Hypermarket',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000886',invoiceVal:31500.00,invoice:'₹ 31,500.00',weight:590,vol:590,filterDate:'12-5-2026'},
+  /* ── 4-11-2026 ── */
+  {date:'04-11-2026',dateVal:20261104,retailer:'Modern Dept Store',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000802',invoiceVal:8912.44,invoice:'₹ 8,912.44',weight:180,vol:180,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Haryana Store',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000790',invoiceVal:6549.28,invoice:'₹ 6,549.28',weight:150,vol:150,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'New Quality Super Market',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000776',invoiceVal:6549.28,invoice:'₹ 6,549.28',weight:150,vol:150,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'New Quality Super Market',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000782',invoiceVal:6549.28,invoice:'₹ 6,549.28',weight:150,vol:150,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Apna Bazaar',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000795',invoiceVal:5230.00,invoice:'₹ 5,230.00',weight:100,vol:100,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Janata Stores',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000798',invoiceVal:9870.00,invoice:'₹ 9,870.00',weight:185,vol:185,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Nandini Supermart',sales:'RAHUL VERMA',beat:'34 35 36 East Zone GR2',ref:'I/26-27/000800',invoiceVal:7100.50,invoice:'₹ 7,100.50',weight:134,vol:134,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Agro Traders',sales:'AMAN SINGH',beat:'66 67 68 Kumbra IA-9 GR3',ref:'I/26-27/000804',invoiceVal:4320.00,invoice:'₹ 4,320.00',weight:83,vol:83,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Deccan Wholesale',sales:'PRIYA SHARMA',beat:'12 13 14 Sector B GR1',ref:'I/26-27/000806',invoiceVal:16400.00,invoice:'₹ 16,400.00',weight:308,vol:308,filterDate:'4-11-2026'},
+  {date:'04-11-2026',dateVal:20261104,retailer:'Lakshmi Cash & Carry',sales:'MEENA JOSHI',beat:'55 56 57 West Block GR4',ref:'I/26-27/000808',invoiceVal:24700.00,invoice:'₹ 24,700.00',weight:462,vol:462,filterDate:'4-11-2026'},
+];
+
+/* ═══════════════ STATE ═══════════════ */
+let selectedFilters = new Set(['4-11-2026']);
+let sortCol = null;   // key of active sort column, or null
+let sortDir = null;   // 'asc' | 'desc' | null
+
+/* ═══════════════ BUILD THEAD (once) ═══════════════ */
+(function buildThead() {
+  const tr = document.getElementById('thead-row');
+
+  // Checkbox cell — not sortable
+  const cbTh = document.createElement('th');
+  cbTh.className = 'col-cb';
+  tr.appendChild(cbTh);
+
+  COLUMNS.forEach(col => {
+    const th = document.createElement('th');
+    th.className = 'sortable';
+    th.dataset.col = col.key;
+
+    // Tooltip showing what a click will do
+    th.dataset.tip = 'Click to sort ascending';
+
+    th.innerHTML = `
+      <span class="th-inner">
+        <i class="ti ${col.icon} th-icon" aria-hidden="true"></i>
+        <span class="th-label">${col.label}</span>
+        <span class="sort-arrows" aria-hidden="true">
+          <span class="arr up">▲</span>
+          <span class="arr dn">▼</span>
+        </span>
+      </span>`;
+
+    th.addEventListener('click', () => handleSort(col.key, th));
+    tr.appendChild(th);
+  });
+})();
+
+/* ═══════════════ SORT HANDLER ═══════════════ */
+function handleSort(key, clickedTh) {
+  if (sortCol === key) {
+    if (sortDir === 'asc')       { sortDir = 'desc'; }
+    else if (sortDir === 'desc') { sortDir = null; sortCol = null; }
+    else                         { sortDir = 'asc'; sortCol = key; }
+  } else {
+    sortCol = key;
+    sortDir = 'asc';
+  }
+  updateSortHeaders();
+  renderTable();
+}
+
+/* ═══════════════ UPDATE HEADER VISUALS ═══════════════ */
+function updateSortHeaders() {
+  document.querySelectorAll('thead th.sortable').forEach(th => {
+    const col = th.dataset.col;
+    th.classList.remove('sort-asc', 'sort-desc');
+
+    if (col === sortCol && sortDir) {
+      th.classList.add('sort-' + sortDir);
+      th.dataset.tip = sortDir === 'asc'
+        ? 'Sorted ascending — click for descending'
+        : 'Sorted descending — click to reset';
+    } else {
+      th.dataset.tip = 'Click to sort ascending';
+    }
+  });
+
+  // Status badge
+  const badge = document.getElementById('sort-status');
+  const lbl   = document.getElementById('sort-label');
+  if (sortCol && sortDir) {
+    const colDef = COLUMNS.find(c => c.key === sortCol);
+    lbl.textContent = colDef.label + ' ' + (sortDir === 'asc' ? '▲' : '▼');
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+/* ═══════════════ FILTER ═══════════════ */
+function getFiltered() {
+  if (selectedFilters.size === 0) return ALL_ORDERS;
+  return ALL_ORDERS.filter(o => selectedFilters.has(o.filterDate));
+}
+
+/* ═══════════════ SORT ═══════════════ */
+function getSorted(rows) {
+  if (!sortCol || !sortDir) return rows;
+  const col = COLUMNS.find(c => c.key === sortCol);
+  if (!col) return rows;
+  return [...rows].sort((a, b) => {
+    const va = col.sortKey(a);
+    const vb = col.sortKey(b);
+    let cmp = col.type === 'str' ? va.localeCompare(vb) : va - vb;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+}
+
+/* ═══════════════ RENDER TABLE ═══════════════ */
+function renderTable() {
+  const rows  = getSorted(getFiltered());
+  const tbody = document.getElementById('tbody');
+  document.getElementById('rec-count').textContent = rows.length;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row">
+      <td colspan="${COLUMNS.length + 1}">
+        <i class="ti ti-package-off empty-icon" aria-hidden="true"></i>
+        No orders found for the selected date filters
+      </td>
+    </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(o => {
+    const cells = COLUMNS.map(col =>
+      `<td class="${col.cls}">${col.fmt(o)}</td>`
+    ).join('');
+    return `<tr><td><input type="checkbox"></td>${cells}</tr>`;
+  }).join('');
+}
+
+/* ═══════════════ CHIPS ═══════════════ */
+function renderChips() {
+  const container = document.getElementById('chips-container');
+  container.innerHTML = '';
+  ORDER_DATES.forEach(d => {
+    const lbl = document.createElement('label');
+    lbl.className = 'chip' + (selectedFilters.has(d) ? ' selected' : '');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = selectedFilters.has(d);
+    cb.addEventListener('change', () => {
+      cb.checked ? selectedFilters.add(d) : selectedFilters.delete(d);
+      renderChips(); renderPills(); renderTable();
+    });
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(d));
+    container.appendChild(lbl);
+  });
+}
+
+/* ═══════════════ PILLS ═══════════════ */
+function renderPills() {
+  const el = document.getElementById('active-pills');
+  el.innerHTML = '';
+  selectedFilters.forEach(d => {
+    const span = document.createElement('span');
+    span.className = 'pill';
+    span.innerHTML = `${d}<span class="rm" title="Remove filter"><i class="ti ti-x" aria-hidden="true"></i></span>`;
+    span.querySelector('.rm').addEventListener('click', () => {
+      selectedFilters.delete(d);
+      renderChips(); renderPills(); renderTable();
+    });
+    el.appendChild(span);
+  });
+}
+
+/* ═══════════════ SELECT ALL ═══════════════ */
+document.getElementById('sel-all').addEventListener('change', e => {
+  document.querySelectorAll('#tbody input[type="checkbox"]')
+    .forEach(cb => cb.checked = e.target.checked);
+});
+
+/* ═══════════════ INIT ═══════════════ */
+renderChips();
+renderPills();
+renderTable();
+</script>
+</body>
+</html>
