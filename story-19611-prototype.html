@@ -4,494 +4,917 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>STORY 19611 – Order Date Filter & UI Cleanup Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; display: flex; height: 100vh; overflow: hidden; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .sidebar { width: 220px; background: #1e3a6e; display: flex; flex-direction: column; flex-shrink: 0; }
-  .sidebar-logo { padding: 16px 18px; font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-  .sidebar nav { flex: 1; padding: 12px 0; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 18px; color: rgba(255,255,255,0.65); font-size: 13.5px; cursor: pointer; transition: background 0.15s; }
-  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+:root {
+  --sidebar-bg: #1a2b4a;
+  --sidebar-hover: #243558;
+  --sidebar-active: #2d4270;
+  --sidebar-text: #a8b8d0;
+  --sidebar-text-active: #ffffff;
+  --sidebar-width: 220px;
+  --topbar-h: 52px;
+  --color-bg: #f4f6fa;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-light: #edf0f7;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  --color-brand: #2563eb;
+  --color-brand-hover: #1d4ed8;
+  --color-brand-light: #eff6ff;
+  --color-brand-mid: #bfdbfe;
+  --color-selected-row: #f0f7ff;
+  --color-summary-bg: #eff6ff;
+  --color-summary-border: #dbeafe;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+}
 
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { background: #fff; border-bottom: 1px solid #e2e6ea; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; }
-  .tab-group { display: flex; background: #f0f2f5; border-radius: 20px; padding: 3px; gap: 2px; }
-  .tab { padding: 6px 20px; border-radius: 16px; font-size: 13px; cursor: pointer; color: #555; transition: all 0.15s; font-weight: 500; }
-  .tab.active { background: #fff; color: #1e3a6e; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+html, body { height: 100%; font-family: 'Inter', sans-serif; font-size: 13px; background: var(--color-bg); color: var(--color-text-primary); line-height: 1.5; }
 
-  .content { flex: 1; overflow-y: auto; padding: 24px; }
-  .page-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 20px; font-weight: 700; color: #1a1a2e; }
-  .back-btn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #d0d5dd; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444; }
+/* ── App shell ── */
+.app { display: flex; height: 100vh; overflow: hidden; }
 
-  .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
 
-  /* Delivery date row */
-  .field-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-  .field-label { font-size: 14px; font-weight: 600; color: #1a1a2e; min-width: 110px; }
-  .date-input { display: flex; align-items: center; gap: 8px; border: 1.5px solid #d0d5dd; border-radius: 8px; padding: 8px 14px; font-size: 14px; color: #1a1a2e; cursor: pointer; background: #fff; }
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.sidebar-brand-icon {
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,.12);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+}
+.sidebar-brand-icon i { font-size: 17px; color: #fff; }
+.sidebar-brand-name { font-size: 13.5px; font-weight: 600; color: #fff; }
 
-  /* Available Orders header — NO Select All */
-  .orders-header { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; margin-bottom: 10px; }
-  .orders-title { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.sidebar-section {
+  padding: 16px 18px 5px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: rgba(168,184,208,.5);
+}
 
-  /* Breadcrumb pills row */
-  .breadcrumbs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; min-height: 24px; }
-  .bc-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .bc-label { font-size: 12px; color: #666; font-weight: 600; }
-  .bc-pill { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 20px; padding: 3px 10px 3px 12px; font-size: 12px; color: #1e3a6e; display: flex; align-items: center; gap: 5px; }
-  .bc-x { cursor: pointer; font-size: 13px; line-height: 1; color: #1e3a6e; font-weight: bold; }
-  .bc-clear { font-size: 12px; color: #e74c3c; cursor: pointer; font-weight: 600; text-decoration: underline; }
-  .bc-divider { width: 1px; height: 16px; background: #d0d5dd; flex-shrink: 0; }
+.nav-group { padding: 2px 8px; }
 
-  .row-count { font-size: 12px; color: #888; margin-bottom: 8px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  position: relative;
+}
+.nav-item i { font-size: 18px; flex-shrink: 0; }
+.nav-item:hover { background: var(--sidebar-hover); color: #e2ecf8; }
+.nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 500; }
 
-  /* Table */
-  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e6ea; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead { background: #f7f9fc; }
-  th { padding: 11px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #5a6a85; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid #e2e6ea; position: relative; }
-  th .th-inner { display: flex; align-items: center; gap: 6px; }
-  td { padding: 12px 14px; border-bottom: 1px solid #f0f2f5; color: #2c3e50; vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #f7f9fc; }
-  td input[type=checkbox] { accent-color: #1e3a6e; }
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sidebar-text);
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+.nav-dot.active { background: #60a5fa; }
 
-  .col-highlighted { color: #1e3a6e; font-weight: 700; }
-  .no-results { text-align: center; padding: 32px; color: #888; font-size: 14px; }
+/* ── Main ── */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* Filter column headers */
-  .filter-col { position: relative; }
-  .filter-icon-btn { background: none; border: none; cursor: pointer; color: #1e3a6e; display: flex; align-items: center; padding: 2px 3px; border-radius: 3px; transition: background 0.12s; flex-shrink: 0; }
-  .filter-icon-btn:hover { background: #dce6f7; }
-  .filter-icon-btn.active { color: #fff; background: #1e3a6e; border-radius: 4px; }
-  .filter-badge { display: inline-flex; align-items: center; justify-content: center; background: #e74c3c; color: #fff; border-radius: 10px; font-size: 10px; font-weight: 700; min-width: 16px; height: 16px; padding: 0 4px; line-height: 1; flex-shrink: 0; }
+/* ── Topbar ── */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--sidebar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
 
-  /* Dropdown — shared style for both filters */
-  .col-dropdown { position: absolute; top: calc(100% + 4px); left: 0; z-index: 300; background: #fff; border: 1.5px solid #d0d5dd; border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.14); width: 250px; display: none; flex-direction: column; overflow: hidden; animation: dropIn 0.15s ease; }
-  .col-dropdown.open { display: flex; }
-  @keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-menu-btn {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,.6); font-size: 20px;
+  display: flex; align-items: center;
+}
 
-  .dd-search-wrap { padding: 10px 12px 8px; border-bottom: 1px solid #f0f2f5; }
-  .dd-search { width: 100%; border: 1.5px solid #d0d5dd; border-radius: 6px; padding: 7px 10px 7px 32px; font-size: 13px; outline: none; background: #f7f9fc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 9px center; transition: border-color 0.12s; }
-  .dd-search:focus { border-color: #1e3a6e; background-color: #fff; }
-  .dd-list { max-height: 220px; overflow-y: auto; padding: 6px 0; }
-  .dd-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; cursor: pointer; font-size: 13px; color: #2c3e50; transition: background 0.1s; }
-  .dd-item:hover { background: #f0f4ff; }
-  .dd-item input[type=checkbox] { accent-color: #1e3a6e; width: 15px; height: 15px; flex-shrink: 0; }
-  .dd-item.dd-select-all { font-weight: 700; color: #1e3a6e; border-bottom: 1px solid #f0f2f5; text-transform: uppercase; font-size: 12px; letter-spacing: 0.03em; }
-  .dd-empty { padding: 16px 14px; font-size: 13px; color: #888; text-align: center; }
-  .dd-footer { padding: 10px 12px; border-top: 1px solid #f0f2f5; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .dd-count { font-size: 12px; color: #1e3a6e; font-weight: 600; }
-  .dd-actions { display: flex; gap: 8px; }
-  .btn-clear { padding: 6px 14px; border-radius: 6px; border: 1.5px solid #d0d5dd; background: #fff; font-size: 12.5px; cursor: pointer; color: #444; transition: all 0.12s; }
-  .btn-clear:hover { border-color: #1e3a6e; color: #1e3a6e; }
-  .btn-apply { padding: 6px 16px; border-radius: 6px; border: none; background: #1e3a6e; color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.12s; }
-  .btn-apply:hover { background: #16306a; }
+.toggle-group {
+  display: flex;
+  background: rgba(255,255,255,.1);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  gap: 2px;
+}
+.toggle-btn {
+  padding: 5px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  color: rgba(255,255,255,.65);
+  background: none;
+  transition: background .15s, color .15s;
+}
+.toggle-btn.active { background: var(--color-surface); color: var(--color-text-primary); }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar-avatar i { font-size: 18px; color: rgba(255,255,255,.7); }
+
+/* ── Content area ── */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-bg);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Page header ── */
+.page-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 28px 0;
+  flex-shrink: 0;
+}
+
+.page-header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.back-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color .15s, background .15s;
+}
+.back-btn:hover { border-color: var(--color-brand); background: var(--color-brand-light); }
+.back-btn i { font-size: 16px; color: var(--color-text-secondary); }
+
+.page-title-row { display: flex; align-items: center; gap: 10px; }
+.page-title-icon { font-size: 22px; color: var(--color-brand); }
+.page-title { font-size: 18px; font-weight: 700; color: var(--color-text-primary); letter-spacing: -.02em; }
+
+.page-meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 16px;
+}
+.meta-label { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
+.delivery-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.delivery-date-badge:hover { border-color: var(--color-brand); }
+.delivery-date-badge i { font-size: 16px; color: var(--color-text-secondary); }
+
+/* ── Orders section ── */
+.orders-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 20px 28px;
+}
+
+.orders-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.orders-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  min-height: 24px;
+}
+.orders-shown { font-size: 12px; color: var(--color-text-muted); }
+
+/* ── Breadcrumb bar ── */
+.breadcrumb-bar {
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  background: #f8faff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+.breadcrumb-bar.visible { display: flex; }
+
+.bc-segment { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.bc-label { font-size: 12px; color: var(--color-text-muted); font-weight: 500; flex-shrink: 0; }
+
+.bc-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 6px 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  background: var(--color-surface);
+  border: 1px solid #cbd5e1;
+  color: var(--color-text-primary);
+}
+.bc-tag-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-muted); padding: 0; line-height: 1;
+  display: flex; align-items: center; border-radius: 50%;
+  transition: color .12s;
+}
+.bc-tag-remove:hover { color: #dc2626; }
+.bc-tag-remove i { font-size: 11px; }
+
+.bc-sep { width: 1px; height: 14px; background: var(--color-border); flex-shrink: 0; align-self: center; }
+
+.bc-clear-all {
+  font-size: 12px; color: #dc2626; cursor: pointer;
+  border: none; background: none; font-family: inherit;
+  padding: 0; font-weight: 500; flex-shrink: 0;
+}
+.bc-clear-all:hover { text-decoration: underline; }
+
+/* ── Summary bar ── */
+.summary-bar {
+  display: none;
+  align-items: center;
+  gap: 0;
+  background: var(--color-summary-bg);
+  border: 1px solid var(--color-summary-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.summary-bar.visible { display: flex; }
+
+.summary-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  font-size: 12.5px;
+  flex: 1;
+}
+.summary-item + .summary-item {
+  border-left: 1px solid var(--color-summary-border);
+}
+.summary-item i { font-size: 16px; color: #3b82f6; flex-shrink: 0; }
+.summary-label { color: #3b82f6; }
+.summary-value { font-weight: 600; color: #1d4ed8; margin-left: 4px; }
+
+/* ── Table card ── */
+.table-card {
+  flex: 1;
+  min-height: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-wrap { overflow: auto; flex: 1; min-height: 0; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 980px;
+}
+
+thead th {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--color-surface);
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.th-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.th-cell i.th-icon { font-size: 13px; flex-shrink: 0; }
+.th-cell i.ti-filter { font-size: 12px; color: var(--color-text-muted); transition: color .12s; }
+.th-cell.filter-active i.ti-filter { color: var(--color-brand); }
+.th-cell.sortable { cursor: pointer; }
+.th-cell.sortable:hover { color: var(--color-text-secondary); }
+.th-cell.num-col { justify-content: flex-end; }
+
+.check-col { width: 44px; }
+.check-col .th-cell { justify-content: center; padding: 10px 0; }
+
+tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background .1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafbfe; }
+tbody tr.is-selected { background: var(--color-selected-row); }
+tbody tr.is-selected:hover { background: #e5f0ff; }
+
+tbody td {
+  padding: 12px 16px;
+  color: var(--color-text-primary);
+  vertical-align: middle;
+  font-size: 13px;
+}
+tbody td.check-col-td { text-align: center; padding: 12px 0; }
+tbody td.num-col { text-align: right; font-variant-numeric: tabular-nums; color: var(--color-text-primary); }
+tbody td.muted { color: var(--color-text-secondary); }
+
+input[type="checkbox"] {
+  width: 15px; height: 15px;
+  cursor: pointer;
+  accent-color: var(--color-brand);
+}
+
+/* ── Dropdown ── */
+.dd-anchor { position: relative; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 400;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  min-width: 240px;
+  display: none;
+}
+.dropdown.open { display: block; }
+
+.dd-search {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.dd-search input {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color .15s;
+}
+.dd-search input:focus { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.dd-search input::placeholder { color: var(--color-text-muted); }
+
+.dd-list { max-height: 210px; overflow-y: auto; padding: 4px 0; }
+
+.dd-option {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--color-text-primary);
+  transition: background .1s;
+}
+.dd-option:hover { background: var(--color-bg); }
+.dd-option label { cursor: pointer; flex: 1; }
+
+.dd-empty { padding: 12px 14px; font-size: 12px; color: var(--color-text-muted); text-align: center; }
+
+.dd-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--color-border-light);
+  background: #fafbfd;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.btn {
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+.btn-ghost:hover { background: var(--color-bg); }
+.btn-primary {
+  background: var(--color-brand);
+  border: 1px solid var(--color-brand);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--color-brand-hover); }
+
+/* ── Empty state ── */
+.empty-row td { text-align: center; padding: 40px 20px; color: var(--color-text-muted); }
+.empty-row i { font-size: 28px; display: block; margin: 0 auto 8px; opacity: .35; }
 </style>
 </head>
 <body>
+<div class="app">
 
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-    Logistics Buyer
-  </div>
-  <nav>
-    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg> Orders</div>
-    <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="m16 8 5 5-5 5"/></svg> Delivery Planning</div>
-    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/></svg> Trips</div>
-    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Reports</div>
-    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Customers</div>
-    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg> Settings</div>
-  </nav>
-</aside>
-
-<div class="main">
-  <div class="topbar">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    <div class="tab-group">
-      <div class="tab active">3PL Logistics</div>
-      <div class="tab">Self Logistics</div>
-    </div>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-  </div>
-
-  <div class="content">
-    <div class="page-header">
-      <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a6e" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      Create Delivery Route
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon"><i class="ti ti-building-store"></i></div>
+      <span class="sidebar-brand-name">Logistics Buyer</span>
     </div>
 
-    <div class="card">
-      <!-- Delivery Date only — Order Dates chip section REMOVED -->
-      <div class="field-row">
-        <span class="field-label">Delivery Date</span>
-        <div class="date-input">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a6e" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          May 27th, 2026
+    <div class="nav-group" style="margin-top:8px">
+      <div class="nav-item"><i class="ti ti-clipboard-list"></i>Orders</div>
+      <div class="nav-item active"><i class="ti ti-truck-delivery"></i>Delivery Planning</div>
+      <div class="nav-item"><i class="ti ti-send"></i>Trips</div>
+      <div class="nav-item"><i class="ti ti-chart-bar"></i>Reports</div>
+      <div class="nav-item"><i class="ti ti-users"></i>Customers</div>
+    </div>
+
+    <div class="nav-group" style="margin-top:4px">
+      <div class="nav-item" style="gap:12px">
+        <span class="nav-dot active"></span>Settings
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-menu-btn"><i class="ti ti-menu-2"></i></button>
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="setTab(this,'3pl')">3PL Logistics</button>
+          <button class="toggle-btn" onclick="setTab(this,'self')">Self Logistics</button>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar"><i class="ti ti-user"></i></div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header-top">
+          <button class="back-btn"><i class="ti ti-arrow-left"></i></button>
+          <div class="page-title-row">
+            <i class="ti ti-clock page-title-icon"></i>
+            <span class="page-title">Create Delivery Route</span>
+          </div>
+        </div>
+        <div class="page-meta">
+          <span class="meta-label">Delivery Date</span>
+          <div class="delivery-date-badge">
+            <i class="ti ti-calendar"></i>
+            <span id="delivery-date-text">May 27th, 2026</span>
+          </div>
         </div>
       </div>
 
-      <!-- Available Orders — Select All REMOVED -->
-      <div class="orders-header">
-        <span class="orders-title">Available Orders</span>
-      </div>
+      <!-- Orders section -->
+      <div class="orders-section">
+        <div class="orders-title">Available Orders</div>
 
-      <!-- Breadcrumb pills — both filters -->
-      <div class="breadcrumbs" id="breadcrumbs"></div>
+        <div class="orders-meta-row">
+          <span class="orders-shown" id="orders-count">12 orders shown</span>
+        </div>
 
-      <div class="row-count" id="rowCount"></div>
+        <!-- Breadcrumb bar -->
+        <div class="breadcrumb-bar" id="breadcrumb-bar">
+          <div class="bc-segment" id="bc-date-seg" style="display:none">
+            <span class="bc-label">Date:</span>
+            <div id="bc-date-tags" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+          </div>
+          <div class="bc-sep" id="bc-sep" style="display:none"></div>
+          <div class="bc-segment" id="bc-beat-seg" style="display:none">
+            <span class="bc-label">Beat:</span>
+            <div id="bc-beat-tags" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+          </div>
+          <button class="bc-clear-all" onclick="clearAllFilters()">Clear all</button>
+        </div>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:40px;"></th>
+        <!-- Summary bar -->
+        <div class="summary-bar" id="summary-bar">
+          <div class="summary-item">
+            <i class="ti ti-list-check"></i>
+            <span class="summary-label">Selected Orders:</span>
+            <span class="summary-value" id="sum-count">0</span>
+          </div>
+          <div class="summary-item">
+            <i class="ti ti-receipt"></i>
+            <span class="summary-label">Total Invoice Value:</span>
+            <span class="summary-value" id="sum-invoice">₹0.00</span>
+          </div>
+          <div class="summary-item">
+            <i class="ti ti-weight"></i>
+            <span class="summary-label">Total Vol. Weight:</span>
+            <span class="summary-value" id="sum-vol">0.00 Kgs</span>
+          </div>
+        </div>
 
-              <!-- ORDER DATE column — now has filter icon -->
-              <th class="filter-col" id="dateColHeader">
-                <div class="th-inner">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  ORDER DATE
-                  <button class="filter-icon-btn" id="dateFilterBtn" title="Filter by Order Date" onclick="toggleDateDropdown(event)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                  </button>
-                  <span class="filter-badge" id="dateBadge" style="display:none"></span>
-                </div>
-                <div class="col-dropdown" id="dateDropdown">
-                  <div class="dd-search-wrap">
-                    <input class="dd-search" id="dateSearch" type="text" placeholder="Search order date…" oninput="buildDateDropdown(this.value)" />
-                  </div>
-                  <div class="dd-list" id="dateList"></div>
-                  <div class="dd-footer">
-                    <span class="dd-count" id="dateDdCount"></span>
-                    <div class="dd-actions">
-                      <button class="btn-clear" onclick="dateClear()">Clear</button>
-                      <button class="btn-apply" onclick="dateApply()">Apply</button>
+        <!-- Table -->
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="check-col">
+                    <div class="th-cell" style="justify-content:center">
+                      <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" />
                     </div>
-                  </div>
-                </div>
-              </th>
+                  </th>
 
-              <th><div class="th-inner"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>RETAILER NAME</div></th>
-              <th><div class="th-inner"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>SALES PERSON</div></th>
-
-              <!-- BEAT NAME column — filter unchanged from 19610 -->
-              <th class="filter-col" id="beatColHeader">
-                <div class="th-inner">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7l1 9 1-4h5l1 4 1-9h7"/></svg>
-                  BEAT NAME
-                  <button class="filter-icon-btn" id="beatFilterBtn" title="Filter by Beat Name" onclick="toggleBeatDropdown(event)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                  </button>
-                  <span class="filter-badge" id="beatBadge" style="display:none"></span>
-                </div>
-                <div class="col-dropdown" id="beatDropdown">
-                  <div class="dd-search-wrap">
-                    <input class="dd-search" id="beatSearch" type="text" placeholder="Search beat name…" oninput="buildBeatDropdown(this.value)" />
-                  </div>
-                  <div class="dd-list" id="beatList"></div>
-                  <div class="dd-footer">
-                    <span class="dd-count" id="beatDdCount"></span>
-                    <div class="dd-actions">
-                      <button class="btn-clear" onclick="beatClear()">Clear</button>
-                      <button class="btn-apply" onclick="beatApply()">Apply</button>
+                  <!-- Order Date filter -->
+                  <th class="dd-anchor">
+                    <div class="th-cell filter-header sortable" id="th-date" onclick="toggleDropdown('dd-date')">
+                      <i class="ti ti-calendar th-icon"></i>
+                      Order Date
+                      <i class="ti ti-filter"></i>
                     </div>
-                  </div>
-                </div>
-              </th>
+                    <div class="dropdown" id="dd-date">
+                      <div class="dd-search">
+                        <input type="text" placeholder="Search dates…" oninput="searchDD('date',this.value)" />
+                      </div>
+                      <div class="dd-list" id="ddlist-date"></div>
+                      <div class="dd-footer">
+                        <button class="btn btn-ghost" onclick="clearDropdown('date')">Clear</button>
+                        <button class="btn btn-primary" onclick="applyFilter('date')">Apply</button>
+                      </div>
+                    </div>
+                  </th>
 
-              <th><div class="th-inner"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>REF ORDER NUMBER</div></th>
-              <th><div class="th-inner"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>INVOICE VALUE</div></th>
-              <th><div class="th-inner"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>TOTAL WEIGHT (KG)</div></th>
-              <th><div class="th-inner"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>TOTAL VOL. WEIGHT (KG)</div></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
+                  <th>
+                    <div class="th-cell">
+                      <i class="ti ti-building-store th-icon"></i>
+                      Retailer Name
+                    </div>
+                  </th>
+
+                  <th>
+                    <div class="th-cell">
+                      <i class="ti ti-user th-icon"></i>
+                      Sales Person
+                    </div>
+                  </th>
+
+                  <!-- Beat Name filter -->
+                  <th class="dd-anchor">
+                    <div class="th-cell filter-header sortable" id="th-beat" onclick="toggleDropdown('dd-beat')">
+                      <i class="ti ti-map-pin th-icon"></i>
+                      Beat Name
+                      <i class="ti ti-filter"></i>
+                    </div>
+                    <div class="dropdown" id="dd-beat">
+                      <div class="dd-search">
+                        <input type="text" placeholder="Search beats…" oninput="searchDD('beat',this.value)" />
+                      </div>
+                      <div class="dd-list" id="ddlist-beat"></div>
+                      <div class="dd-footer">
+                        <button class="btn btn-ghost" onclick="clearDropdown('beat')">Clear</button>
+                        <button class="btn btn-primary" onclick="applyFilter('beat')">Apply</button>
+                      </div>
+                    </div>
+                  </th>
+
+                  <th>
+                    <div class="th-cell">
+                      <i class="ti ti-hash th-icon"></i>
+                      Ref Order Number
+                    </div>
+                  </th>
+
+                  <th>
+                    <div class="th-cell num-col">
+                      <i class="ti ti-hash th-icon"></i>
+                      Invoice Value
+                    </div>
+                  </th>
+
+                  <th>
+                    <div class="th-cell num-col">
+                      <i class="ti ti-circle-dot th-icon"></i>
+                      Total Weight (Kg)
+                    </div>
+                  </th>
+
+                  <th>
+                    <div class="th-cell num-col">
+                      <i class="ti ti-circle-dot th-icon"></i>
+                      Total Vol. Weight (Kg)
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ─── DATA ────────────────────────────────────────────────────────────────────
-const allOrders = [
-  { id:1,  date:'04-11-2026', retailer:'Modern Dept Store',   sales:'AMAN SINGH',   beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000802', invoice:'₹8,912.44',  weight:'180.00 Kgs', volWeight:'180.00 Kgs' },
-  { id:2,  date:'04-11-2026', retailer:'New Quality Traders', sales:'PRIYA SHARMA', beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000803', invoice:'₹5,430.00',  weight:'95.50 Kgs',  volWeight:'95.50 Kgs'  },
-  { id:3,  date:'20-3-2026',  retailer:'Sunrise Wholesale',   sales:'RAJAN MEHTA',  beat:'South Zone Beat 12',       ref:'I/26-27/000804', invoice:'₹12,800.00', weight:'240.00 Kgs', volWeight:'230.00 Kgs' },
-  { id:4,  date:'20-3-2026',  retailer:'Greenway Stores',     sales:'AMAN SINGH',   beat:'North Beat GR7',           ref:'I/26-27/000805', invoice:'₹3,250.50',  weight:'60.00 Kgs',  volWeight:'60.00 Kgs'  },
-  { id:5,  date:'20-3-2026',  retailer:'City Mart',           sales:'DIVYA NAIR',   beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000806', invoice:'₹7,100.00',  weight:'130.00 Kgs', volWeight:'128.00 Kgs' },
-  { id:6,  date:'20-3-2026',  retailer:'Horizon Retail',      sales:'PRIYA SHARMA', beat:'South Zone Beat 12',       ref:'I/26-27/000807', invoice:'₹9,460.00',  weight:'175.00 Kgs', volWeight:'170.00 Kgs' },
-  { id:7,  date:'20-3-2026',  retailer:'Metro Supplies',      sales:'RAJAN MEHTA',  beat:'East Beat Cluster A',      ref:'I/26-27/000808', invoice:'₹4,670.00',  weight:'88.00 Kgs',  volWeight:'88.00 Kgs'  },
-  { id:8,  date:'20-3-2026',  retailer:'Peak Distributors',   sales:'AMAN SINGH',   beat:'East Beat Cluster A',      ref:'I/26-27/000809', invoice:'₹15,300.00', weight:'300.00 Kgs', volWeight:'295.00 Kgs' },
-  { id:9,  date:'20-3-2026',  retailer:'Valley Merchants',    sales:'DIVYA NAIR',   beat:'North Beat GR7',           ref:'I/26-27/000810', invoice:'₹2,900.00',  weight:'45.00 Kgs',  volWeight:'45.00 Kgs'  },
-  { id:10, date:'20-3-2026',  retailer:'Apex Traders',        sales:'PRIYA SHARMA', beat:'West Corridor Beat 5',     ref:'I/26-27/000811', invoice:'₹6,750.00',  weight:'110.00 Kgs', volWeight:'108.00 Kgs' },
-  { id:11, date:'21-3-2026',  retailer:'Crown Wholesale',     sales:'RAJAN MEHTA',  beat:'West Corridor Beat 5',     ref:'I/26-27/000812', invoice:'₹18,400.00', weight:'350.00 Kgs', volWeight:'345.00 Kgs' },
-  { id:12, date:'21-3-2026',  retailer:'Bloom Retail Chain',  sales:'AMAN SINGH',   beat:'South Zone Beat 12',       ref:'I/26-27/000813', invoice:'₹11,200.00', weight:'210.00 Kgs', volWeight:'205.00 Kgs' },
+const ALL_ORDERS = [
+  { id:1,  date:'04-11-2026', retailer:'Modern Dept Store',      sales:'AMAN SINGH',   beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000802', invoice:8912.44,  weight:180.00, vol:180.00 },
+  { id:2,  date:'04-11-2026', retailer:'New Quality Traders',    sales:'PRIYA SHARMA', beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000803', invoice:5430.00,  weight:95.50,  vol:95.50  },
+  { id:3,  date:'20-3-2026',  retailer:'Sunrise Wholesale',      sales:'RAJAN MEHTA',  beat:'South Zone Beat 12',        ref:'I/26-27/000804', invoice:12800.00, weight:240.00, vol:230.00 },
+  { id:4,  date:'20-3-2026',  retailer:'Greenway Stores',        sales:'AMAN SINGH',   beat:'North Beat GR7',            ref:'I/26-27/000805', invoice:3250.50,  weight:60.00,  vol:60.00  },
+  { id:5,  date:'20-3-2026',  retailer:'City Mart',              sales:'DIVYA NAIR',   beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000806', invoice:7100.00,  weight:130.00, vol:128.00 },
+  { id:6,  date:'20-3-2026',  retailer:'Horizon Retail',         sales:'PRIYA SHARMA', beat:'South Zone Beat 12',        ref:'I/26-27/000807', invoice:9460.00,  weight:175.00, vol:170.00 },
+  { id:7,  date:'20-3-2026',  retailer:'Metro Supplies',         sales:'RAJAN MEHTA',  beat:'East Beat Cluster A',       ref:'I/26-27/000808', invoice:4670.00,  weight:88.00,  vol:88.00  },
+  { id:8,  date:'20-3-2026',  retailer:'Peak Distributors',      sales:'AMAN SINGH',   beat:'East Beat Cluster A',       ref:'I/26-27/000809', invoice:15300.00, weight:300.00, vol:295.00 },
+  { id:9,  date:'15-2-2026',  retailer:'Apex Traders',           sales:'DIVYA NAIR',   beat:'North Beat GR7',            ref:'I/26-27/000810', invoice:6200.00,  weight:110.00, vol:105.00 },
+  { id:10, date:'15-2-2026',  retailer:'Royal Kirana',           sales:'PRIYA SHARMA', beat:'South Zone Beat 12',        ref:'I/26-27/000811', invoice:3900.00,  weight:72.00,  vol:70.00  },
+  { id:11, date:'10-1-2026',  retailer:'Star Provisions',        sales:'RAJAN MEHTA',  beat:'66 67 68 Kumbra IA-9 GR3', ref:'I/26-27/000812', invoice:11500.00, weight:200.00, vol:195.00 },
+  { id:12, date:'10-1-2026',  retailer:'Laxmi Wholesale',        sales:'AMAN SINGH',   beat:'East Beat Cluster A',       ref:'I/26-27/000813', invoice:5780.00,  weight:95.00,  vol:92.00  },
 ];
 
-// Dates sorted chronologically
-function parseDate(s) { const [d,m,y]=s.split('-'); return new Date(+y,+m-1,+d); }
-const allDates = [...new Set(allOrders.map(o=>o.date))].sort((a,b)=>parseDate(a)-parseDate(b));
-const allBeats = [...new Set(allOrders.map(o=>o.beat))].sort();
+let activeFilters  = { date: new Set(), beat: new Set() };
+let pendingFilters = { date: new Set(), beat: new Set() };
+let selectedIds    = new Set();
+let visibleOrders  = [];
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let appliedDates   = new Set();           // empty = no date filter
-let pendingDates   = new Set(allDates);   // dropdown default: all checked
-let dateDropOpen   = false;
+/* Delivery date */
+function formatDate() {
+  const d = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const day = d.getDate();
+  const s = [11,12,13].includes(day) ? 'th' : day%10===1?'st':day%10===2?'nd':day%10===3?'rd':'th';
+  return `${months[d.getMonth()]} ${day}${s}, ${d.getFullYear()}`;
+}
+document.getElementById('delivery-date-text').textContent = formatDate();
 
-let appliedBeats   = new Set();           // empty = no beat filter
-let pendingBeats   = new Set(allBeats);   // dropdown default: all checked
-let beatDropOpen   = false;
+/* Tab toggle */
+function setTab(btn, _tab) {
+  btn.closest('.toggle-group').querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
-// ─── TABLE RENDER ─────────────────────────────────────────────────────────────
-function getFilteredOrders() {
-  return allOrders.filter(o => {
-    const dateOk = appliedDates.size === 0 || appliedDates.has(o.date);
-    const beatOk = appliedBeats.size === 0 || appliedBeats.has(o.beat);
-    return dateOk && beatOk;
+/* Unique values */
+function uniqueVals(field) {
+  return [...new Set(ALL_ORDERS.map(o => o[field]))].sort();
+}
+
+/* Render dropdown list */
+function renderDDList(type, query='') {
+  const field = type === 'date' ? 'date' : 'beat';
+  const vals = uniqueVals(field).filter(v => v.toLowerCase().includes(query.toLowerCase()));
+  const pending = pendingFilters[type];
+  const el = document.getElementById('ddlist-' + type);
+
+  if (!vals.length) { el.innerHTML = '<div class="dd-empty">No results found</div>'; return; }
+
+  el.innerHTML = vals.map(v => {
+    const uid = 'chk-' + type + '-' + v.replace(/[^a-z0-9]/gi, '_');
+    return `<div class="dd-option">
+      <input type="checkbox" id="${uid}" ${pending.has(v)?'checked':''}
+        onchange="togglePending('${type}','${CSS.escape(v)}',this.checked)" />
+      <label for="${uid}">${v}</label>
+    </div>`;
+  }).join('');
+
+  /* re-attach handlers since CSS.escape won't help with onclick strings */
+  el.querySelectorAll('.dd-option input').forEach((cb, i) => {
+    cb.onchange = (e) => togglePending(type, vals[i], e.target.checked);
   });
 }
 
-function renderTable() {
-  const tbody  = document.getElementById('tableBody');
-  const orders = getFilteredOrders();
-  tbody.innerHTML = '';
+function searchDD(type, q) { renderDDList(type, q); }
 
-  if (orders.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="no-results">No orders found for the selected filters.</td></tr>`;
-    document.getElementById('rowCount').textContent = '0 orders shown';
+function togglePending(type, val, checked) {
+  checked ? pendingFilters[type].add(val) : pendingFilters[type].delete(val);
+}
+
+/* Dropdown open/close */
+function toggleDropdown(id) {
+  const dd = document.getElementById(id);
+  const type = id.replace('dd-', '');
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) {
+    pendingFilters[type] = new Set(activeFilters[type]);
+    renderDDList(type);
+    dd.classList.add('open');
+  }
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dd-anchor') && !e.target.closest('.filter-header')) {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+/* Apply / Clear */
+function applyFilter(type) {
+  activeFilters[type] = new Set(pendingFilters[type]);
+  document.getElementById('dd-' + type).classList.remove('open');
+  rebuildTable(); updateBreadcrumbs(); updateFilterHeaders();
+}
+
+function clearDropdown(type) {
+  pendingFilters[type].clear();
+  renderDDList(type);
+}
+
+function clearAllFilters() {
+  activeFilters.date.clear(); activeFilters.beat.clear();
+  pendingFilters.date.clear(); pendingFilters.beat.clear();
+  rebuildTable(); updateBreadcrumbs(); updateFilterHeaders();
+}
+
+function removeBcTag(type, val) {
+  activeFilters[type].delete(val);
+  rebuildTable(); updateBreadcrumbs(); updateFilterHeaders();
+}
+
+/* Rebuild table */
+function rebuildTable() {
+  visibleOrders = ALL_ORDERS.filter(o => {
+    const dOk = activeFilters.date.size === 0 || activeFilters.date.has(o.date);
+    const bOk = activeFilters.beat.size === 0 || activeFilters.beat.has(o.beat);
+    return dOk && bOk;
+  });
+  selectedIds.forEach(id => { if (!visibleOrders.find(o => o.id === id)) selectedIds.delete(id); });
+  renderRows();
+  document.getElementById('orders-count').textContent =
+    visibleOrders.length + ' order' + (visibleOrders.length !== 1 ? 's' : '') + ' shown';
+  updateSummary();
+}
+
+function renderRows() {
+  const tbody = document.getElementById('table-body');
+  if (!visibleOrders.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">
+      <i class="ti ti-inbox"></i>No orders match the selected filters.</td></tr>`;
+    document.getElementById('select-all').checked = false;
+    document.getElementById('select-all').indeterminate = false;
     return;
   }
 
-  const dateActive = appliedDates.size > 0;
-  const beatActive = appliedBeats.size > 0;
-
-  orders.forEach(o => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="checkbox" class="row-cb"></td>
-      <td class="${dateActive ? 'col-highlighted' : ''}">${o.date}</td>
+  tbody.innerHTML = visibleOrders.map(o => {
+    const sel = selectedIds.has(o.id);
+    return `<tr class="${sel?'is-selected':''}" id="row-${o.id}">
+      <td class="check-col-td">
+        <input type="checkbox" ${sel?'checked':''} onchange="toggleRow(${o.id},this.checked)" />
+      </td>
+      <td>${o.date}</td>
       <td>${o.retailer}</td>
-      <td>${o.sales}</td>
-      <td class="${beatActive ? 'col-highlighted' : ''}">${o.beat}</td>
-      <td>${o.ref}</td>
-      <td>${o.invoice}</td>
-      <td>${o.weight}</td>
-      <td>${o.volWeight}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+      <td class="muted">${o.sales}</td>
+      <td>${o.beat}</td>
+      <td class="muted">${o.ref}</td>
+      <td class="num-col">₹${o.invoice.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="num-col">${o.weight.toFixed(2)} Kgs</td>
+      <td class="num-col">${o.vol.toFixed(2)} Kgs</td>
+    </tr>`;
+  }).join('');
 
-  document.getElementById('rowCount').textContent = `${orders.length} order${orders.length!==1?'s':''} shown`;
+  const sa = document.getElementById('select-all');
+  const allSel = visibleOrders.every(o => selectedIds.has(o.id));
+  const someSel = visibleOrders.some(o => selectedIds.has(o.id));
+  sa.checked = allSel;
+  sa.indeterminate = !allSel && someSel;
 }
 
-// ─── BREADCRUMBS ─────────────────────────────────────────────────────────────
-function renderBreadcrumbs() {
-  const container  = document.getElementById('breadcrumbs');
-  container.innerHTML = '';
-
-  const hasDate = appliedDates.size > 0;
-  const hasBeat = appliedBeats.size > 0;
-  if (!hasDate && !hasBeat) return;
-
-  // Date group
-  if (hasDate) {
-    const grp = document.createElement('div');
-    grp.className = 'bc-group';
-    const lbl = document.createElement('span');
-    lbl.className = 'bc-label'; lbl.textContent = 'Date:';
-    grp.appendChild(lbl);
-    appliedDates.forEach(date => {
-      const pill = document.createElement('div');
-      pill.className = 'bc-pill';
-      pill.innerHTML = `${date} <span class="bc-x" onclick="removeDateVal('${date}')">×</span>`;
-      grp.appendChild(pill);
-    });
-    if (appliedDates.size > 1) {
-      const cl = document.createElement('span');
-      cl.className = 'bc-clear'; cl.textContent = 'Clear all';
-      cl.onclick = () => { appliedDates.clear(); renderTable(); renderBreadcrumbs(); updateDateBadge(); };
-      grp.appendChild(cl);
-    }
-    container.appendChild(grp);
-  }
-
-  // Divider between groups
-  if (hasDate && hasBeat) {
-    const div = document.createElement('div');
-    div.className = 'bc-divider';
-    container.appendChild(div);
-  }
-
-  // Beat group
-  if (hasBeat) {
-    const grp = document.createElement('div');
-    grp.className = 'bc-group';
-    const lbl = document.createElement('span');
-    lbl.className = 'bc-label'; lbl.textContent = 'Beat:';
-    grp.appendChild(lbl);
-    appliedBeats.forEach(beat => {
-      const pill = document.createElement('div');
-      pill.className = 'bc-pill';
-      pill.innerHTML = `${beat} <span class="bc-x" onclick="removeBeatVal('${beat.replace(/'/g,"\\'")}')">×</span>`;
-      grp.appendChild(pill);
-    });
-    if (appliedBeats.size > 1) {
-      const cl = document.createElement('span');
-      cl.className = 'bc-clear'; cl.textContent = 'Clear all';
-      cl.onclick = () => { appliedBeats.clear(); renderTable(); renderBreadcrumbs(); updateBeatBadge(); };
-      grp.appendChild(cl);
-    }
-    container.appendChild(grp);
-  }
+/* Row selection */
+function toggleRow(id, checked) {
+  checked ? selectedIds.add(id) : selectedIds.delete(id);
+  const row = document.getElementById('row-' + id);
+  if (row) row.className = checked ? 'is-selected' : '';
+  const sa = document.getElementById('select-all');
+  const allSel = visibleOrders.every(o => selectedIds.has(o.id));
+  sa.checked = allSel;
+  sa.indeterminate = !allSel && visibleOrders.some(o => selectedIds.has(o.id));
+  updateSummary();
 }
 
-function removeDateVal(date) {
-  appliedDates.delete(date);
-  renderTable(); renderBreadcrumbs(); updateDateBadge();
-}
-function removeBeatVal(beat) {
-  appliedBeats.delete(beat);
-  renderTable(); renderBreadcrumbs(); updateBeatBadge();
+function toggleSelectAll(cb) {
+  visibleOrders.forEach(o => cb.checked ? selectedIds.add(o.id) : selectedIds.delete(o.id));
+  renderRows(); updateSummary();
 }
 
-// ─── GENERIC DROPDOWN BUILDER ─────────────────────────────────────────────────
-function buildDropdown(allValues, pendingSet, listId, countId, searchTerm) {
-  const list     = document.getElementById(listId);
-  const filtered = allValues.filter(v => v.toLowerCase().includes((searchTerm||'').toLowerCase()));
-  list.innerHTML = '';
-
-  const allChecked  = filtered.length > 0 && filtered.every(v => pendingSet.has(v));
-  const someChecked = filtered.some(v => pendingSet.has(v));
-
-  const saRow = document.createElement('div');
-  saRow.className = 'dd-item dd-select-all';
-  saRow.innerHTML = `<input type="checkbox" ${allChecked ? 'checked' : ''}> Select All`;
-  const saCb = saRow.querySelector('input');
-  saCb.indeterminate = !allChecked && someChecked;
-  saCb.addEventListener('change', () => {
-    if (saCb.checked) filtered.forEach(v => pendingSet.add(v));
-    else              filtered.forEach(v => pendingSet.delete(v));
-    buildDropdown(allValues, pendingSet, listId, countId, document.getElementById(listId.replace('List','Search')).value);
-  });
-  list.appendChild(saRow);
-
-  if (filtered.length === 0) {
-    const empty = document.createElement('div');
-    empty.className = 'dd-empty';
-    empty.textContent = listId === 'dateList' ? 'No dates found.' : 'No beats found.';
-    list.appendChild(empty);
-  } else {
-    filtered.forEach(val => {
-      const row = document.createElement('div');
-      row.className = 'dd-item';
-      row.innerHTML = `<input type="checkbox" ${pendingSet.has(val) ? 'checked' : ''}> ${val}`;
-      const cb = row.querySelector('input');
-      cb.addEventListener('change', () => {
-        if (cb.checked) pendingSet.add(val); else pendingSet.delete(val);
-        buildDropdown(allValues, pendingSet, listId, countId, document.getElementById(listId.replace('List','Search')).value);
-      });
-      list.appendChild(row);
-    });
-  }
-  const cnt = pendingSet.size;
-  document.getElementById(countId).textContent = cnt > 0 ? `${cnt} selected` : '';
+/* Summary */
+function updateSummary() {
+  const sel = ALL_ORDERS.filter(o => selectedIds.has(o.id));
+  const bar = document.getElementById('summary-bar');
+  if (!sel.length) { bar.classList.remove('visible'); return; }
+  bar.classList.add('visible');
+  document.getElementById('sum-count').textContent = sel.length;
+  document.getElementById('sum-invoice').textContent =
+    '₹' + sel.reduce((a,o)=>a+o.invoice,0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('sum-vol').textContent =
+    sel.reduce((a,o)=>a+o.vol,0).toFixed(2) + ' Kgs';
 }
 
-// ─── DATE FILTER ─────────────────────────────────────────────────────────────
-function buildDateDropdown(s) { buildDropdown(allDates, pendingDates, 'dateList', 'dateDdCount', s); }
+/* Breadcrumbs */
+function updateBreadcrumbs() {
+  const hasDate = activeFilters.date.size > 0;
+  const hasBeat = activeFilters.beat.size > 0;
+  const bar = document.getElementById('breadcrumb-bar');
+  (hasDate || hasBeat) ? bar.classList.add('visible') : bar.classList.remove('visible');
 
-function toggleDateDropdown(e) {
-  e.stopPropagation();
-  if (beatDropOpen) closeBeatDropdown();
-  dateDropOpen = !dateDropOpen;
-  const dd = document.getElementById('dateDropdown');
-  const btn = document.getElementById('dateFilterBtn');
-  if (dateDropOpen) {
-    pendingDates = appliedDates.size > 0 ? new Set(appliedDates) : new Set(allDates);
-    dd.classList.add('open'); btn.classList.add('active');
-    document.getElementById('dateSearch').value = '';
-    buildDateDropdown('');
-    document.getElementById('dateSearch').focus();
-  } else { closeDateDropdown(); }
+  document.getElementById('bc-date-seg').style.display = hasDate ? 'flex' : 'none';
+  document.getElementById('bc-beat-seg').style.display = hasBeat ? 'flex' : 'none';
+  document.getElementById('bc-sep').style.display = (hasDate && hasBeat) ? 'block' : 'none';
+
+  document.getElementById('bc-date-tags').innerHTML =
+    [...activeFilters.date].map(v => bcTag('date', v)).join('');
+  document.getElementById('bc-beat-tags').innerHTML =
+    [...activeFilters.beat].map(v => bcTag('beat', v)).join('');
 }
 
-function closeDateDropdown() {
-  dateDropOpen = false;
-  document.getElementById('dateDropdown').classList.remove('open');
-  document.getElementById('dateFilterBtn').classList.remove('active');
+function bcTag(type, val) {
+  return `<span class="bc-tag">${val}
+    <button class="bc-tag-remove" data-type="${type}" data-val="${val}" aria-label="Remove ${val}">
+      <i class="ti ti-x"></i>
+    </button></span>`;
 }
 
-function dateClear() {
-  appliedDates.clear(); pendingDates = new Set(allDates);
-  closeDateDropdown(); renderTable(); renderBreadcrumbs(); updateDateBadge();
-}
-
-function dateApply() {
-  appliedDates = pendingDates.size === allDates.length ? new Set() : new Set(pendingDates);
-  closeDateDropdown(); renderTable(); renderBreadcrumbs(); updateDateBadge();
-}
-
-function updateDateBadge() {
-  const badge = document.getElementById('dateBadge');
-  badge.style.display = appliedDates.size > 0 ? 'inline-flex' : 'none';
-  badge.textContent = appliedDates.size;
-}
-
-// ─── BEAT FILTER ─────────────────────────────────────────────────────────────
-function buildBeatDropdown(s) { buildDropdown(allBeats, pendingBeats, 'beatList', 'beatDdCount', s); }
-
-function toggleBeatDropdown(e) {
-  e.stopPropagation();
-  if (dateDropOpen) closeDateDropdown();
-  beatDropOpen = !beatDropOpen;
-  const dd = document.getElementById('beatDropdown');
-  const btn = document.getElementById('beatFilterBtn');
-  if (beatDropOpen) {
-    pendingBeats = appliedBeats.size > 0 ? new Set(appliedBeats) : new Set(allBeats);
-    dd.classList.add('open'); btn.classList.add('active');
-    document.getElementById('beatSearch').value = '';
-    buildBeatDropdown('');
-    document.getElementById('beatSearch').focus();
-  } else { closeBeatDropdown(); }
-}
-
-function closeBeatDropdown() {
-  beatDropOpen = false;
-  document.getElementById('beatDropdown').classList.remove('open');
-  document.getElementById('beatFilterBtn').classList.remove('active');
-}
-
-function beatClear() {
-  appliedBeats.clear(); pendingBeats = new Set(allBeats);
-  closeBeatDropdown(); renderTable(); renderBreadcrumbs(); updateBeatBadge();
-}
-
-function beatApply() {
-  appliedBeats = pendingBeats.size === allBeats.length ? new Set() : new Set(pendingBeats);
-  closeBeatDropdown(); renderTable(); renderBreadcrumbs(); updateBeatBadge();
-}
-
-function updateBeatBadge() {
-  const badge = document.getElementById('beatBadge');
-  badge.style.display = appliedBeats.size > 0 ? 'inline-flex' : 'none';
-  badge.textContent = appliedBeats.size;
-}
-
-// Close dropdowns on outside click
 document.addEventListener('click', e => {
-  if (dateDropOpen && !document.getElementById('dateColHeader').contains(e.target)) closeDateDropdown();
-  if (beatDropOpen && !document.getElementById('beatColHeader').contains(e.target)) closeBeatDropdown();
+  const btn = e.target.closest('.bc-tag-remove');
+  if (btn) removeBcTag(btn.dataset.type, btn.dataset.val);
 });
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-function init() { renderTable(); }
-init();
+function updateFilterHeaders() {
+  document.getElementById('th-date').classList.toggle('filter-active', activeFilters.date.size > 0);
+  document.getElementById('th-beat').classList.toggle('filter-active', activeFilters.beat.size > 0);
+}
+
+/* Init */
+rebuildTable();
 </script>
 </body>
 </html>
