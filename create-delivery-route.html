@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Delivery Route – Logistics Buyer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sidebar-bg: #1e3a6e;
+    --sidebar-active: rgba(255,255,255,0.12);
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --accent: #2563eb;
+    --accent-dark: #1e50c8;
+    --border: #e5e9ef;
+    --border-light: #f1f3f7;
+    --bg-page: #f0f2f7;
+    --bg-white: #ffffff;
+    --bg-surface: #f8f9fb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --beat-a: #dbeafe; --beat-a-text: #1d4ed8;
+    --beat-b: #dcfce7; --beat-b-text: #166534;
+    --beat-c: #ede9fe; --beat-c-text: #5b21b6;
+    --beat-d: #fce7f3; --beat-d-text: #9d174d;
+    --warn-bg: #fffbeb; --warn-border: #fcd34d; --warn-text: #92400e;
+    --warn-tag-bg: #fef3c7;
+  }
+
+  html, body { height: 100%; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg-page); color: var(--text-primary); font-size: 14px; }
+
+  /* ── Layout ── */
+  .app { display: flex; height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    background: var(--sidebar-bg);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: width 0.2s;
+  }
+  .sidebar.collapsed { width: 60px; }
+  .sidebar.collapsed .nav-label,
+  .sidebar.collapsed .sidebar-title { display: none; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 11px; }
+
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    min-height: 60px;
+  }
+  .sidebar-logo-icon { color: #fff; font-size: 22px; flex-shrink: 0; }
+  .sidebar-title { color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .sidebar-collapse-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .sidebar-collapse-btn:hover { background: rgba(255,255,255,0.28); }
+
+  .nav { padding: 10px 0; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px;
+    color: rgba(255,255,255,0.68);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    font-size: 14px;
+    transition: background 0.13s, color 0.13s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+  .nav-item.active { background: var(--sidebar-active); color: #fff; border-left-color: #60a5fa; }
+  .nav-item i { font-size: 19px; width: 22px; flex-shrink: 0; }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    margin-left: 220px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left 0.2s;
+  }
+  .main.expanded { margin-left: 60px; }
+
+  /* ── Topbar ── */
+  .topbar {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky; top: 0; z-index: 90;
+  }
+  .topbar-menu-btn {
+    background: none; border: none; cursor: pointer;
+    color: #555; font-size: 22px; display: flex; align-items: center;
+    padding: 4px;
+  }
+  .topbar-user { display: flex; align-items: center; gap: 8px; }
+  .topbar-user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #dbeafe; color: #1d4ed8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* ── Content ── */
+  .content { flex: 1; padding: 24px; overflow-y: auto; }
+
+  /* ── Page header ── */
+  .page-header {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-bottom: 18px;
+  }
+  .back-btn {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    width: 32px; height: 32px; cursor: pointer; color: var(--sidebar-bg);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    transition: background 0.13s;
+  }
+  .back-btn:hover { background: var(--bg-surface); }
+  .page-title {
+    font-size: 17px; font-weight: 600; color: var(--sidebar-bg);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .page-title i { color: var(--sidebar-bg); font-size: 20px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; color: #374151;
+    margin-bottom: 14px; letter-spacing: 0.01em;
+  }
+
+  /* ── Delivery date pill ── */
+  .date-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1.5px solid var(--sidebar-bg);
+    border-radius: 7px; padding: 9px 16px;
+    font-size: 14px; font-weight: 500; color: var(--sidebar-bg);
+    cursor: pointer; background: #fff;
+    transition: background 0.13s;
+  }
+  .date-pill:hover { background: #eef3fb; }
+  .date-pill i { font-size: 17px; }
+
+  /* ── Date chips ── */
+  .order-dates-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .date-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid #d1d5db; border-radius: 6px;
+    padding: 6px 11px; font-size: 13px; color: #374151;
+    cursor: pointer; background: #fff;
+    transition: all 0.13s; user-select: none;
+  }
+  .date-chip:hover { border-color: #93c5fd; background: #f0f7ff; }
+  .date-chip input[type=checkbox] { accent-color: var(--sidebar-bg); width: 14px; height: 14px; cursor: pointer; }
+  .date-chip.selected { background: #eef3fb; border-color: #60a5fa; color: var(--sidebar-bg); font-weight: 500; }
+
+  /* ── Settings row ── */
+  .settings-row { display: flex; align-items: stretch; gap: 14px; flex-wrap: wrap; }
+  .setting-group {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 16px;
+    flex: 1; min-width: 260px;
+  }
+  .setting-group label { font-size: 13px; font-weight: 500; color: #374151; white-space: nowrap; }
+  .setting-group i.group-icon { color: var(--sidebar-bg); font-size: 18px; flex-shrink: 0; }
+  .setting-group select {
+    border: 1px solid #d1d5db; border-radius: 6px;
+    padding: 6px 30px 6px 9px;
+    font-size: 13px; color: #1f2937;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 9px center;
+    appearance: none; -webkit-appearance: none;
+    cursor: pointer; font-family: inherit;
+    transition: border-color 0.13s;
+  }
+  .setting-group select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.2); }
+  .setting-badge {
+    font-size: 11px; padding: 3px 8px;
+    border-radius: 5px; font-weight: 600;
+    white-space: nowrap; margin-left: auto;
+  }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+
+  .setting-hint {
+    margin-top: 10px; font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: flex-start; gap: 6px; line-height: 1.5;
+  }
+  .setting-hint i { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+
+  /* ── Beat split alert ── */
+  .beat-alert {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13px; color: var(--warn-text);
+    display: none; align-items: flex-start; gap: 10px;
+    line-height: 1.55;
+  }
+  .beat-alert i { font-size: 17px; margin-top: 1px; flex-shrink: 0; }
+  .beat-alert b { font-weight: 600; }
+
+  /* ── Orders table card ── */
+  .orders-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .orders-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .orders-card-header h2 { font-size: 13px; font-weight: 600; color: #374151; }
+  .select-all-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; color: #374151; cursor: pointer;
+  }
+  .select-all-label input[type=checkbox] { accent-color: var(--sidebar-bg); width: 15px; height: 15px; }
+
+  .table-scroll { overflow-x: auto; }
+  .orders-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    min-width: 860px;
+  }
+  .orders-table th {
+    background: var(--bg-surface);
+    color: #6b7280; font-weight: 500; font-size: 11.5px;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--border);
+    text-align: left; white-space: nowrap; letter-spacing: 0.03em;
+  }
+  .orders-table th i { font-size: 12px; vertical-align: -1px; margin-right: 3px; }
+  .orders-table th .sort-icon,
+  .orders-table th .filter-icon { font-size: 11px; color: var(--text-muted); margin-left: 3px; cursor: pointer; }
+  .orders-table td {
+    padding: 10px 13px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+  .orders-table tbody tr:last-child td { border-bottom: none; }
+  .orders-table tbody tr:hover td { background: #f9fafb; }
+  .orders-table tbody tr.selected td { background: #eef3fb; }
+  .orders-table tbody tr.beat-warn td { background: var(--warn-bg); }
+  .orders-table tbody tr.beat-warn.selected td { background: #fef3c7; }
+
+  /* beat tags */
+  .beat-tag {
+    display: inline-block; font-size: 11px; padding: 2px 7px;
+    border-radius: 4px; font-weight: 500; white-space: nowrap;
+  }
+  .beat-a { background: var(--beat-a); color: var(--beat-a-text); }
+  .beat-b { background: var(--beat-b); color: var(--beat-b-text); }
+  .beat-c { background: var(--beat-c); color: var(--beat-c-text); }
+  .beat-d { background: var(--beat-d); color: var(--beat-d-text); }
+  .beat-warn-tag { background: var(--warn-tag-bg) !important; color: var(--warn-text) !important; }
+  .warn-icon { color: #f59e0b; font-size: 14px; margin-left: 5px; vertical-align: -2px; }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    background: var(--bg-white);
+    border-top: 1px solid var(--border);
+    padding: 13px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; bottom: 0; z-index: 90;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .bottom-stats { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .stat-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .stat-item i { font-size: 16px; color: var(--sidebar-bg); }
+  .stat-item b { color: var(--text-primary); font-weight: 600; }
+  .btn-row { display: flex; gap: 10px; }
+  .btn {
+    border: none; border-radius: 7px;
+    padding: 9px 22px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-cancel { background: #f3f4f6; color: #374151; }
+  .btn-cancel:hover { background: #e5e7eb; }
+  .btn-primary { background: var(--sidebar-bg); color: #fff; }
+  .btn-primary:hover { background: #27508c; }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* ── Toast notification ── */
+  .toast {
+    position: fixed; bottom: 80px; right: 24px;
+    background: #1f2937; color: #fff;
+    padding: 12px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0; transform: translateY(8px);
+    transition: all 0.25s; pointer-events: none;
+    z-index: 999; max-width: 380px;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: #064e3b; }
+  .toast.error { background: #7f1d1d; }
+  .toast i { font-size: 17px; flex-shrink: 0; }
+
+  /* ── Plan routes modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px;
+    padding: 28px; width: 480px; max-width: 92vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .modal-header i { font-size: 22px; color: var(--sidebar-bg); }
+  .modal-header h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .modal-body { font-size: 13.5px; color: #374151; line-height: 1.6; }
+  .modal-body .summary-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid var(--border-light);
+  }
+  .modal-body .summary-row:last-child { border-bottom: none; }
+  .modal-body .summary-label { color: var(--text-secondary); }
+  .modal-body .summary-value { font-weight: 500; color: var(--text-primary); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+  /* ── Scrollbar styling ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="ti ti-layout-grid sidebar-logo-icon" aria-hidden="true"></i>
+      <span class="sidebar-title">Logistics Buyer</span>
+      <button class="sidebar-collapse-btn" id="sidebar-toggle" aria-label="Collapse sidebar">
+        <i class="ti ti-chevron-left" style="font-size:13px" aria-hidden="true"></i>
+      </button>
+    </div>
+    <nav class="nav">
+      <a class="nav-item" href="#"><i class="ti ti-shopping-cart" aria-hidden="true"></i><span class="nav-label">Orders</span></a>
+      <a class="nav-item active" href="#"><i class="ti ti-truck-delivery" aria-hidden="true"></i><span class="nav-label">Delivery Planning</span></a>
+      <a class="nav-item" href="#"><i class="ti ti-route" aria-hidden="true"></i><span class="nav-label">Trips</span></a>
+      <a class="nav-item" href="#"><i class="ti ti-chart-bar" aria-hidden="true"></i><span class="nav-label">Reports</span></a>
+      <a class="nav-item" href="#"><i class="ti ti-users" aria-hidden="true"></i><span class="nav-label">Customers</span></a>
+      <a class="nav-item" href="#"><i class="ti ti-settings" aria-hidden="true"></i><span class="nav-label">Settings</span></a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="main" id="main-panel">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="topbar-menu-btn" aria-label="Toggle sidebar">
+        <i class="ti ti-menu-2" aria-hidden="true"></i>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-user-avatar" aria-hidden="true">AS</div>
+      </div>
+    </header>
+
+    <!-- Scrollable content -->
+    <div class="content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <button class="back-btn" aria-label="Go back"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <h1 class="page-title"><i class="ti ti-git-branch" aria-hidden="true"></i>Create Delivery Route</h1>
+      </div>
+
+      <!-- Delivery Date -->
+      <div class="card">
+        <div class="card-title">Delivery Date</div>
+        <button class="date-pill" id="delivery-date-btn" aria-label="Select delivery date">
+          <i class="ti ti-calendar" aria-hidden="true"></i>
+          <span id="delivery-date-label">June 3rd, 2026</span>
+        </button>
+      </div>
+
+      <!-- Order Dates -->
+      <div class="card">
+        <div class="card-title">Order Dates</div>
+        <div class="order-dates-row" id="order-dates-row">
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="20-3-2026">20-3-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="21-3-2026">21-3-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="13-4-2026">13-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="14-4-2026">14-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="16-4-2026">16-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="17-4-2026">17-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="18-4-2026">18-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="21-4-2026">21-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="22-4-2026">22-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="28-4-2026">28-4-2026</label>
+          <label class="date-chip"><input type="checkbox" class="order-date-cb" value="7-5-2026">7-5-2026</label>
+          <label class="date-chip selected"><input type="checkbox" class="order-date-cb" value="12-5-2026" checked>12-5-2026</label>
+          <label class="date-chip selected"><input type="checkbox" class="order-date-cb" value="4-11-2026" checked>4-11-2026</label>
+        </div>
+      </div>
+
+      <!-- Route Settings -->
+      <div class="card">
+        <div class="card-title">Route Settings</div>
+        <div class="settings-row">
+          <div class="setting-group">
+            <i class="ti ti-git-fork group-icon" aria-hidden="true"></i>
+            <label for="split-beats-select">Split beats among trips</label>
+            <select id="split-beats-select" aria-describedby="split-beats-hint">
+              <option value="no" selected>No (Default)</option>
+              <option value="yes">Yes</option>
+            </select>
+            <span class="setting-badge badge-green" id="split-beats-badge">Beats intact</span>
+          </div>
+          <div class="setting-group">
+            <i class="ti ti-clock group-icon" aria-hidden="true"></i>
+            <label for="trip-window">Delivery window</label>
+            <select id="trip-window">
+              <option>Full day</option>
+              <option>Morning (6am–12pm)</option>
+              <option>Afternoon (12pm–6pm)</option>
+            </select>
+          </div>
+        </div>
+        <div class="setting-hint" id="split-beats-hint">
+          <i class="ti ti-info-circle" aria-hidden="true"></i>
+          <span id="split-hint-text">When set to <b>No</b>, all orders belonging to the same beat are assigned to a single trip — beats will never be split across multiple trips.</span>
+        </div>
+      </div>
+
+      <!-- Beat split alert -->
+      <div class="beat-alert" id="beat-alert" role="alert">
+        <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+        <div id="beat-alert-text">
+          <b>Beat split detected:</b> Some beats are only partially selected. With "Split beats among trips = No", all orders in a beat must go to the same trip. Select the remaining orders for each beat, or switch the setting to <b>Yes</b>.
+        </div>
+      </div>
+
+      <!-- Available Orders -->
+      <div class="orders-card">
+        <div class="orders-card-header">
+          <h2>Available Orders</h2>
+          <label class="select-all-label">
+            <input type="checkbox" id="select-all-cb" aria-label="Select all orders">
+            Select All
+          </label>
+        </div>
+        <div class="table-scroll">
+          <table class="orders-table" id="orders-table">
+            <thead>
+              <tr>
+                <th style="width:42px"></th>
+                <th><i class="ti ti-calendar" aria-hidden="true"></i>ORDER DATE<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></th>
+                <th><i class="ti ti-building-store" aria-hidden="true"></i>RETAILER NAME</th>
+                <th><i class="ti ti-user" aria-hidden="true"></i>SALES PERSON</th>
+                <th><i class="ti ti-route" aria-hidden="true"></i>BEAT NAME<i class="ti ti-filter filter-icon" aria-hidden="true"></i></th>
+                <th><i class="ti ti-hash" aria-hidden="true"></i>REF ORDER NUMBER</th>
+                <th><i class="ti ti-currency-rupee" aria-hidden="true"></i>INVOICE VALUE</th>
+                <th><i class="ti ti-weight" aria-hidden="true"></i>WEIGHT (KG)</th>
+                <th><i class="ti ti-box" aria-hidden="true"></i>VOL. WEIGHT (KG)</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- Bottom bar -->
+    <div class="bottom-bar">
+      <div class="bottom-stats">
+        <div class="stat-item">
+          <i class="ti ti-list-check" aria-hidden="true"></i>
+          Selected Orders: <b id="stat-count">0</b>
+        </div>
+        <div class="stat-item">
+          <i class="ti ti-currency-rupee" aria-hidden="true"></i>
+          Total Invoice Value: <b id="stat-value">₹ 0.00</b>
+        </div>
+        <div class="stat-item">
+          <i class="ti ti-weight" aria-hidden="true"></i>
+          Total Vol. Weight: <b id="stat-weight">0.00 Kgs</b>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-cancel" id="cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="plan-routes-btn">Plan Routes</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Plan Routes Modal -->
+<div class="modal-overlay" id="plan-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <i class="ti ti-truck-delivery" aria-hidden="true"></i>
+      <h3 id="modal-title">Confirm Route Planning</h3>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" id="modal-cancel-btn">Back</button>
+      <button class="btn btn-primary" id="modal-confirm-btn">Confirm &amp; Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <i class="ti ti-check-circle" id="toast-icon" aria-hidden="true"></i>
+  <span id="toast-text"></span>
+</div>
+
+<script>
+  /* ── Data ── */
+  const ORDERS = [
+    {date:"04-11-2026",retailer:"Modern Dept Store",    sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000802",inv:8912.44,wt:180.00,vwt:180.00},
+    {date:"04-11-2026",retailer:"New Quality Super Market",sp:"AMAN SINGH",beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3",ref:"I/26-27/000776",inv:6549.28,wt:150.00,vwt:150.00},
+    {date:"04-11-2026",retailer:"New Quality Super Market",sp:"AMAN SINGH",beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3",ref:"I/26-27/000782",inv:6549.28,wt:150.00,vwt:150.00},
+    {date:"04-11-2026",retailer:"Rattan Suresh Sons",  sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000775",inv:6549.28,wt:150.00,vwt:150.00},
+    {date:"04-11-2026",retailer:"Haryana Store",       sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000790",inv:6549.28,wt:150.00,vwt:150.00},
+    {date:"04-11-2026",retailer:"BEDI STORE",          sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000784",inv:3559.24,wt:64.92, vwt:66.60},
+    {date:"04-11-2026",retailer:"APNA STORE",          sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000799",inv:3321.49,wt:61.23, vwt:61.65},
+    {date:"04-11-2026",retailer:"New Quality Super Market",sp:"AMAN SINGH",beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3",ref:"I/26-27/000783",inv:2699.39,wt:60.00, vwt:60.00},
+    {date:"04-11-2026",retailer:"Rattan Suresh Sons",  sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000777",inv:2699.39,wt:60.00, vwt:60.00},
+    {date:"04-11-2026",retailer:"KAUSHAL TRADERS",     sp:"AMAN SINGH",   beat:"Beat A",beatFull:"Beat A – Kumbra IA-9 GR3", ref:"I/26-27/000794",inv:2646.02,wt:34.92, vwt:36.60},
+    {date:"04-11-2026",retailer:"BEDI STORE",          sp:"SUNIL PRIME A", beat:"Beat B",beatFull:"Beat B – Kumbra IA-9 P/A", ref:"I/26-27/000752",inv:3412.77,wt:14.96, vwt:20.90},
+    {date:"04-11-2026",retailer:"H R SUPER MARKET",    sp:"RAJ",           beat:"Beat C",beatFull:"Beat C – Kumbra IA-9 GR2", ref:"I/26-27/000772",inv:3057.79,wt:7.46,  vwt:8.72},
+    {date:"04-11-2026",retailer:"THE FRESHMART FOOD",  sp:"MIRZA PRIME C", beat:"Beat D",beatFull:"Beat D – Kumbra IA-9 GR1", ref:"I/26-27/000810",inv:3007.19,wt:13.31, vwt:53.47},
+    {date:"12-5-2026", retailer:"CITY MART",           sp:"PRIYA NAIR",    beat:"Beat C",beatFull:"Beat C – Kumbra IA-9 GR2", ref:"I/26-27/000820",inv:4210.00,wt:88.00, vwt:90.00},
+    {date:"12-5-2026", retailer:"SHIVA STORES",        sp:"PRIYA NAIR",    beat:"Beat C",beatFull:"Beat C – Kumbra IA-9 GR2", ref:"I/26-27/000821",inv:3100.50,wt:55.00, vwt:55.00},
+  ];
+
+  const BEAT_CLASSES = {"Beat A":"beat-a","Beat B":"beat-b","Beat C":"beat-c","Beat D":"beat-d"};
+
+  const selected = new Set();
+
+  /* ── DOM refs ── */
+  const tbody          = document.getElementById('orders-tbody');
+  const splitSelect    = document.getElementById('split-beats-select');
+  const splitBadge     = document.getElementById('split-beats-badge');
+  const hintText       = document.getElementById('split-hint-text');
+  const beatAlert      = document.getElementById('beat-alert');
+  const beatAlertText  = document.getElementById('beat-alert-text');
+  const selectAllCb    = document.getElementById('select-all-cb');
+  const statCount      = document.getElementById('stat-count');
+  const statValue      = document.getElementById('stat-value');
+  const statWeight     = document.getElementById('stat-weight');
+  const planBtn        = document.getElementById('plan-routes-btn');
+  const cancelBtn      = document.getElementById('cancel-btn');
+  const sidebar        = document.getElementById('sidebar');
+  const mainPanel      = document.getElementById('main-panel');
+  const sidebarToggle  = document.getElementById('sidebar-toggle');
+  const topbarMenuBtn  = document.getElementById('topbar-menu-btn');
+  const planModal      = document.getElementById('plan-modal');
+  const modalBody      = document.getElementById('modal-body');
+  const modalCancel    = document.getElementById('modal-cancel-btn');
+  const modalConfirm   = document.getElementById('modal-confirm-btn');
+  const toast          = document.getElementById('toast');
+  const toastText      = document.getElementById('toast-text');
+  const toastIcon      = document.getElementById('toast-icon');
+
+  /* ── Helpers ── */
+  function fmtInv(n) {
+    return '₹ ' + n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtWt(n) { return n.toFixed(2) + ' Kgs'; }
+
+  function getBeatCounts() {
+    const total = {}, sel = {};
+    ORDERS.forEach((o, i) => {
+      total[o.beat] = (total[o.beat] || 0) + 1;
+      if (selected.has(i)) sel[o.beat] = (sel[o.beat] || 0) + 1;
+    });
+    return { total, sel };
+  }
+
+  function getPartialBeats(counts) {
+    return Object.keys(counts.total).filter(b => counts.sel[b] > 0 && counts.sel[b] < counts.total[b]);
+  }
+
+  function splitAllowed() { return splitSelect.value === 'yes'; }
+
+  /* ── Render table ── */
+  function renderRows() {
+    const counts = getBeatCounts();
+    const partial = getPartialBeats(counts);
+    const hasWarn = !splitAllowed() && partial.length > 0 && selected.size > 0;
+
+    tbody.innerHTML = '';
+    ORDERS.forEach((o, i) => {
+      const isSel = selected.has(i);
+      const beatPartial = partial.includes(o.beat);
+      const warn = !splitAllowed() && beatPartial;
+      const beatClass = BEAT_CLASSES[o.beat] || 'beat-a';
+
+      const tr = document.createElement('tr');
+      tr.className = (isSel ? 'selected' : '') + (warn ? ' beat-warn' : '');
+
+      tr.innerHTML = `
+        <td><input type="checkbox" class="row-cb" data-idx="${i}" ${isSel ? 'checked' : ''} aria-label="Select order ${o.ref}"></td>
+        <td>${o.date}</td>
+        <td>${o.retailer}</td>
+        <td>${o.sp}</td>
+        <td>
+          <span class="beat-tag ${beatClass}${warn ? ' beat-warn-tag' : ''}">${o.beatFull}</span>
+          ${warn ? '<i class="ti ti-alert-triangle warn-icon" title="This beat will be split across trips" aria-label="Beat split warning"></i>' : ''}
+        </td>
+        <td>${o.ref}</td>
+        <td>${fmtInv(o.inv)}</td>
+        <td>${fmtWt(o.wt)}</td>
+        <td>${fmtWt(o.vwt)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // re-attach row cb listeners
+    document.querySelectorAll('.row-cb').forEach(cb => {
+      cb.addEventListener('change', e => {
+        const idx = +e.target.dataset.idx;
+        if (e.target.checked) selected.add(idx); else selected.delete(idx);
+        updateStats();
+        renderRows();
+      });
+    });
+
+    // Beat alert
+    if (hasWarn) {
+      const partialList = partial.map(b => `<b>${b}</b>`).join(', ');
+      beatAlertText.innerHTML = `<b>Beat split detected:</b> The following beats are only partially selected: ${partialList}. With "Split beats among trips = No", all orders in a beat must go to the same trip. Select all orders for each beat, or switch the setting to <b>Yes</b>.`;
+      beatAlert.style.display = 'flex';
+    } else {
+      beatAlert.style.display = 'none';
+    }
+
+    selectAllCb.checked = selected.size === ORDERS.length;
+    selectAllCb.indeterminate = selected.size > 0 && selected.size < ORDERS.length;
+  }
+
+  /* ── Stats ── */
+  function updateStats() {
+    let cnt = 0, val = 0, wt = 0;
+    selected.forEach(i => { cnt++; val += ORDERS[i].inv; wt += ORDERS[i].vwt; });
+    statCount.textContent = cnt;
+    statValue.textContent = fmtInv(val);
+    statWeight.textContent = fmtWt(wt);
+  }
+
+  /* ── Toast ── */
+  let toastTimer;
+  function showToast(msg, type = 'default') {
+    toastText.textContent = msg;
+    toast.className = 'toast ' + type;
+    toastIcon.className = type === 'error' ? 'ti ti-alert-circle' : 'ti ti-check-circle';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  /* ── Sidebar toggle ── */
+  function toggleSidebar() {
+    sidebar.classList.toggle('collapsed');
+    mainPanel.classList.toggle('expanded');
+    const icon = sidebarToggle.querySelector('i');
+    icon.className = sidebar.classList.contains('collapsed')
+      ? 'ti ti-chevron-right'
+      : 'ti ti-chevron-left';
+  }
+  sidebarToggle.addEventListener('click', toggleSidebar);
+  topbarMenuBtn.addEventListener('click', toggleSidebar);
+
+  /* ── Select all ── */
+  selectAllCb.addEventListener('change', e => {
+    if (e.target.checked) ORDERS.forEach((_, i) => selected.add(i));
+    else selected.clear();
+    updateStats();
+    renderRows();
+  });
+
+  /* ── Split setting change ── */
+  splitSelect.addEventListener('change', () => {
+    const isNo = splitSelect.value === 'no';
+    splitBadge.className = 'setting-badge ' + (isNo ? 'badge-green' : 'badge-amber');
+    splitBadge.textContent = isNo ? 'Beats intact' : 'Splits allowed';
+    hintText.innerHTML = isNo
+      ? 'When set to <b>No</b>, all orders belonging to the same beat are assigned to a single trip — beats will never be split across multiple trips.'
+      : 'When set to <b>Yes</b>, the route optimizer can distribute orders from the same beat across multiple trips. Useful when vehicle capacity requires it.';
+    renderRows();
+  });
+
+  /* ── Order date chips ── */
+  document.querySelectorAll('.order-date-cb').forEach(cb => {
+    cb.addEventListener('change', e => {
+      e.target.closest('.date-chip').classList.toggle('selected', e.target.checked);
+    });
+  });
+
+  /* ── Cancel ── */
+  cancelBtn.addEventListener('click', () => {
+    selected.clear();
+    updateStats();
+    renderRows();
+    showToast('Selection cleared.');
+  });
+
+  /* ── Plan Routes ── */
+  planBtn.addEventListener('click', () => {
+    if (selected.size === 0) {
+      showToast('Please select at least one order to plan routes.', 'error');
+      return;
+    }
+    const counts = getBeatCounts();
+    const partial = getPartialBeats(counts);
+    if (!splitAllowed() && partial.length > 0) {
+      showToast('Beat split detected. Resolve warnings before planning.', 'error');
+      beatAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Build modal summary
+    const beats = [...new Set([...selected].map(i => ORDERS[i].beat))];
+    let val = 0, wt = 0;
+    selected.forEach(i => { val += ORDERS[i].inv; wt += ORDERS[i].vwt; });
+
+    modalBody.innerHTML = `
+      <div class="summary-row"><span class="summary-label">Orders selected</span><span class="summary-value">${selected.size}</span></div>
+      <div class="summary-row"><span class="summary-label">Total invoice value</span><span class="summary-value">${fmtInv(val)}</span></div>
+      <div class="summary-row"><span class="summary-label">Total vol. weight</span><span class="summary-value">${fmtWt(wt)}</span></div>
+      <div class="summary-row"><span class="summary-label">Beats in route</span><span class="summary-value">${beats.join(', ')}</span></div>
+      <div class="summary-row"><span class="summary-label">Split beats among trips</span><span class="summary-value">${splitSelect.value === 'no' ? 'No – beats intact' : 'Yes – splits allowed'}</span></div>
+      <div class="summary-row"><span class="summary-label">Delivery window</span><span class="summary-value">${document.getElementById('trip-window').value}</span></div>
+    `;
+    planModal.classList.add('open');
+  });
+
+  modalCancel.addEventListener('click', () => planModal.classList.remove('open'));
+  planModal.addEventListener('click', e => { if (e.target === planModal) planModal.classList.remove('open'); });
+
+  modalConfirm.addEventListener('click', () => {
+    planModal.classList.remove('open');
+    showToast('Routes planned successfully! Redirecting to Trips…', 'success');
+  });
+
+  /* ── Init ── */
+  renderRows();
+  updateStats();
+</script>
+</body>
+</html>
